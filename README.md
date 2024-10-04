@@ -4,42 +4,78 @@ This repository is intended for the benchmarking of FYP project.
 
 ## Setup 
 
-Install pyenv 
+1. Build openssl from source
+```
+cd 
+mkdir ssl 
+mkdir sslsrc 
+cd sslsrc
+
+wget www.openssl.org/source/openssl-1.1.1.tar.gz
+tar xf openssl-1.1.1.tar.gz
+cd openssl-1.1.1
+./config --prefix=$HOME/openssl --openssldir=$HOME/openssl 
+make 
+make install
+```
+
+2. Add these to .bashrc by  vim ~/.bashrc
+```
+export PATH="$HOME/openssl/bin:$PATH"
+export LDFLAGS="-L$HOME/openssl/lib"
+export CPPFLAGS="-I$HOME/openssl/include"
+export PKG_CONFIG_PATH="$HOME/openssl/lib/pkgconfig"
+export LD_LIBRARY_PATH="$HOME/openssl/lib:$LD_LIBRARY_PATH"
+```
+
+3. Reload Shell 
+```
+source ~/.bashrc
+```
+
+
+4. Install pyenv 
 ``` 
 curl https://pyenv.run | bash
 
 ```
 
-Add to  ~/.bashrc
+5. Add to  ~/.bashrc
 ``` 
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
 ```
 
-Reload Shell 
+6. Reload Shell 
 ```
 source ~/.bashrc
 ```
 
-Installation of python 3.11
+7. Installation of python 3.11
 ```
 pyenv install 3.11
 pyenv global 3.11.10
 pyenv which python #record this path
 ```
-Create Virtual environment
-```
-virtualenv --python=paste_path_here benchenv .
 
+8. Create Virtual environment
+
+```
+python3 -m venv benchenv
 source benchenv/bin/activate
 ```
 
-Install depedencies
+
+9. Install depedencies
 ```
 # install pytorch
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip install -r requirements.txt
 ```
+
+10. Running
+`python src/llama3.py`
 
 
 
