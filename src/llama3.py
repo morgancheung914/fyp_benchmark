@@ -10,7 +10,7 @@ class Llama3(BaseModel):
         input_text,
         add_generation_prompt=True,
         return_tensors="pt"
-    ).to(self.model.device)
+    ).to(self.device)
 
         terminators = [
         self.tokenizer.eos_token_id,

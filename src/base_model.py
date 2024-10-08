@@ -27,11 +27,11 @@ class BaseModel:
         self.device = torch.device("cuda" if torch.cuda.is_available else "cpu")
         
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id, cache_dir = cache_dir)
-        self.model = AutoModelForCausalLM.from_pretrained(self.model_id, cache_dir = cache_dir)
+        self.model = AutoModelForCausalLM.from_pretrained(self.model_id, cache_dir = cache_dir, device_map="auto")
         
         print(f">Bench> Model {self.internal_id} loaded.")
 
-        self.model.to(self.device)
+        #self.model.to(self.device)
 
         print(f">Bench> Model {self.internal_id} loaded onto {self.device}.")
     
@@ -45,7 +45,8 @@ class BaseModel:
             input_text (str): the input text IN CHAT FORMAT
         """
         
-        input_ids = self.tokenizer.encode(input_text, return_tensors = 'pt').to(self.device)
+        #input_ids = self.tokenizer.encode(input_text, return_tensors = 'pt').to(self.device)
+        input_ids = self.tokenizer.encode(input_text, return_tensors = 'pt')
 
         output = self.model.generate(input_ids, max_length=max_length, num_return_sequences=num_return_seq, temperature=temperature)
 
