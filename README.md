@@ -56,14 +56,13 @@ source ~/.bashrc
 ```
 pyenv install 3.11
 pyenv global 3.11.10
-pyenv which python #record this path
 ```
 
 8. Create Virtual environment
 
 ```
 python3 -m venv benchenv
-source benchenv/bin/activate
+source ~/benchenv/bin/activate
 ```
 
 
@@ -71,7 +70,7 @@ source benchenv/bin/activate
 ```
 # install pytorch
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 10. Running
