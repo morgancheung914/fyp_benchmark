@@ -87,4 +87,5 @@ If you need to install new dependencies, the preferred way is to use `python3 -m
 config: `export SLURM_CONF=/opt1/slurm/gpu-slurm.conf`
 
 
-`srun -p gpu_24h --gres=gpu:1 -C "rtx3090" --pty /bin/bash`
+`srun -p gpu_2h  -c 4 --gres=gpu:1 -C "rtx3090" --pty /bin/bash`
+
