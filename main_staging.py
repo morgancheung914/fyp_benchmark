@@ -1,7 +1,7 @@
-from src.llama3 import Llama3
+from src.llama3 import Llama3, Med42
 # TODO: Choosing the models from the config 
 
-model = Llama3(None)
+model = Med42(None)
 
 model.load_model()
 messages = [
