@@ -1,8 +1,8 @@
 from src.base_model import BaseModel
-class Med42(BaseModel):
+class Med42Model(BaseModel):
     
     def __init__(self, config=None):
-        super().__init__(config, internal_id = "Med42-8B", model_id = "m42-health/Llama3-Med42-8B")
+        super().__init__(config, internal_id = "Med42", model_id = "m42-health/Llama3-Med42-8B")
         
     def predict(self, input_text, max_length, num_return_seq, temperature):
 

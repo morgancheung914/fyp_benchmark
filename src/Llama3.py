@@ -1,8 +1,8 @@
 from src.base_model import BaseModel
-class Llama3(BaseModel):
+class Llama3Model(BaseModel):
     
     def __init__(self, config=None):
-        super().__init__(config, internal_id = "Llama3-8B", model_id = "meta-llama/Meta-Llama-3-8B-Instruct")
+        super().__init__(config, internal_id = "Llama3", model_id = "meta-llama/Meta-Llama-3-8B-Instruct")
         
     def predict(self, input_text, max_length, num_return_seq, temperature):
 

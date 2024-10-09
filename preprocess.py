@@ -42,15 +42,15 @@ def process_data(d, cache_dir): # takes in dataset and cache_dir configs
 def format_chat_template(row, qcol, system_prompt, tokenizer):
     row_json = [{"role": "system", "content": system_prompt},
                 {"role": "user", "content": row[qcol]}]
-    
-    return tokenizer.apply_chat_template(row_json, tokenize=False)
+    row["token_text"] = row_json
+    return row
 
 def format_MedMcQa(row, tokenizer):
     row_json = [{"role": "system", "content": "Please read the question and pick the most suitable choice from A to D, simply answer A, B, C or D"},
                 {"role": "user", "content": "Question: " + row["question"] + "Choices: " + f""" A: {row["opa"]}, B: {row["opb"]}, C: {row["opc"]}, D: {row["opd"]}"""},
               ]
-    
-    return tokenizer.apply_chat_template(row_json, tokenize=False)
+    row["token_text"] = row_json
+    return row
 
 def format_MMLU(row, tokenizer):
 
@@ -58,8 +58,8 @@ def format_MMLU(row, tokenizer):
                 {"role": "user", "content": "Question: " + row['question'] + "Choices: " + f"A: {row['choices'][0]}, B: {row['choices'][1]}, C: {row['choices'][2]}, D: {row['choices'][3]}"},
                 ]
 
-    
-    return tokenizer.apply_chat_template(row_json, tokenize=False)
+    row["token_text"] = row_json
+    return row
 
 
 def chat_formatter(dataset, name = None, question='question', system_prompt = "Please answer this question with Yes, No or Maybe.", tokenizer = None):
