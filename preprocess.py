@@ -42,7 +42,9 @@ def process_data(d, cache_dir): # takes in dataset and cache_dir configs
 def format_chat_template(row, qcol, system_prompt, tokenizer):
     row_json = [{"role": "system", "content": system_prompt},
                 {"role": "user", "content": row[qcol]}]
+    
     row["token_text"] = row_json
+    
     return row
 
 def format_MedMcQa(row, tokenizer):
@@ -74,8 +76,12 @@ def chat_formatter(dataset, name = None, question='question', system_prompt = "P
         dataset = dataset.map(
             format_chat_template,
             fn_kwargs = {'qcol': question, 'system_prompt': system_prompt, "tokenizer": tokenizer},
-            num_proc=4,
-        )
+            num_proc=4)
+        
+
     else:
         dataset = dataset.map(format_MMLU, fn_kwargs = {"tokenizer": tokenizer}, num_proc=4)
+
+    # since the datasets.map function orders the dictionary keys alphabetically, we have to reorder them 
+
     return dataset

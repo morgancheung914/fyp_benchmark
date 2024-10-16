@@ -2,7 +2,10 @@
 #from src.llama3 import Llama3
 
 #from src.internist import Internist
+import os
 from preprocess import process_data, chat_formatter
+from transformers import DefaultDataCollator
+from torch.utils.data import DataLoader
 import yaml
 with open('config.yaml', 'r') as file:
     configs = yaml.safe_load(file)
@@ -26,18 +29,31 @@ for dataset in list(datasets_dict.keys()):
     if datasets_dict[dataset] == None:
         continue 
     else:
+       
         datasets_dict[dataset] = chat_formatter(datasets_dict[dataset], name = dataset, tokenizer = model.tokenizer)
 print(f">Bench>: Datasets preprocessing finished: {configs['dataset']['dataset_names']}")
 
 
+#inference 
 
-#messages = [
-    #{"role": "system", "content": "Please answer the question below"},
-    #{"role": "user", "content": "Who are you?"},
-#]
+for dataset in list(datasets_dict.keys()):
+    if datasets_dict[dataset] == None:
+        continue 
+
+    dataset = datasets_dict[dataset]
+    dataset_test = dataset['test']
+
+    dataset_test = dataset_test['token_text']
+    
+    
+    dataloader = DataLoader(dataset_test, batch_size = 3, shuffle=False, collate_fn = lambda x: x)
+
+    for batch in dataloader:
+
+        print(model.batch_predict(batch, max_length = 50, num_return_seq = 1, temperature = 1))
 
 
-print(model.predict(datasets_dict['PubMedQA']['test'][0]["token_text"], max_length = 1000, num_return_seq = 1, temperature = 1.5))
+
 
 
 
