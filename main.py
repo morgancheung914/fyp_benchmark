@@ -3,13 +3,14 @@
 
 #from src.internist import Internist
 import os
-from preprocess import process_data, chat_formatter
+from preprocess import process_data
 from transformers import DefaultDataCollator
 from torch.utils.data import DataLoader
 import yaml
+
+
 with open('config.yaml', 'r') as file:
     configs = yaml.safe_load(file)
-
 
 
 # Choosing the models from the config 
@@ -20,37 +21,38 @@ model_chosen = getattr(model_file, configs['model']+"Model")
 model = model_chosen(None)
 model.load_model()
 
+# get the required datasets from config 
 bench_datasets = set(configs['dataset']['dataset_names'])
-#load dataset
 
-datasets_dict = process_data(d = bench_datasets, cache_dir = 'dataset/cache')
+# load datasets, the returned dict stores the processed datasetDict w.r.t each dataset 
+datasets_dict = process_data(bench_datasets, 'dataset/cache')
 print(f">Bench>: Datasets loaded: {configs['dataset']['dataset_names']}")
+
+
+
+# inference 
 for dataset in list(datasets_dict.keys()):
     if datasets_dict[dataset] == None:
-        continue 
+        if dataset in bench_datasets:
+            print("Dataset processing error")
+
+        else:
+            continue 
+
     else:
-       
-        datasets_dict[dataset] = chat_formatter(datasets_dict[dataset], name = dataset, tokenizer = model.tokenizer)
-print(f">Bench>: Datasets preprocessing finished: {configs['dataset']['dataset_names']}")
+        # parse the contents into the designated prompt template 
+        if dataset == 'MedMCQA':
+            ds_test = [[{"role": "system", "content": i['sys_content']},
+                {"role": "user", "content": i['user_content']}] for i in datasets_dict[dataset]['validation']]
+        else:   
+            ds_test = [[{"role": "system", "content": i['sys_content']},
+                {"role": "user", "content": i['user_content']}] for i in datasets_dict[dataset]['test']]
+        
+        dataloader = DataLoader(ds_test, batch_size = 3, shuffle=False, collate_fn = lambda x: x)
 
+        for batch in dataloader:
+            print(model.batch_predict(batch, max_length = 50, num_return_seq = 1, temperature = 1))
 
-#inference 
-
-for dataset in list(datasets_dict.keys()):
-    if datasets_dict[dataset] == None:
-        continue 
-
-    dataset = datasets_dict[dataset]
-    dataset_test = dataset['test']
-
-    dataset_test = dataset_test['token_text']
-    
-    
-    dataloader = DataLoader(dataset_test, batch_size = 3, shuffle=False, collate_fn = lambda x: x)
-
-    for batch in dataloader:
-
-        print(model.batch_predict(batch, max_length = 50, num_return_seq = 1, temperature = 1))
 
 
 
