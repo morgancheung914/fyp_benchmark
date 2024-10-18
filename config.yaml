@@ -1,4 +1,4 @@
 dataset:
   dataset_names: 
-    - PubMedQA
+    - MMLU_biology
 model: Internist

@@ -42,18 +42,28 @@ for dataset in list(datasets_dict.keys()):
     else:
         # parse the contents into the designated prompt template 
         if dataset == 'MedMCQA':
+            selected_ds = datasets_dict[dataset]['validation']
             ds_test = [[{"role": "system", "content": i['sys_content']},
-                {"role": "user", "content": i['user_content']}] for i in datasets_dict[dataset]['validation']]
+                {"role": "user", "content": i['user_content']}] for i in selected_ds]
         else:   
+            selected_ds = datasets_dict[dataset]['test']
             ds_test = [[{"role": "system", "content": i['sys_content']},
-                {"role": "user", "content": i['user_content']}] for i in datasets_dict[dataset]['test']]
-        
+                {"role": "user", "content": i['user_content']}] for i in selected_ds]
+            
+
+        #test for deterministicness
+
         dataloader = DataLoader(ds_test, batch_size = 3, shuffle=False, collate_fn = lambda x: x)
-
+        responses = []
+        
         for batch in dataloader:
-            print(model.batch_predict(batch, max_length = 50, num_return_seq = 1, temperature = 1))
 
-
+            batch_responses = (model.batch_predict(batch, max_length = 50, num_return_seq = 1, temperature = 1))
+            print(batch_responses)
+            responses.extend(batch_responses)
+        selected_ds = selected_ds.add_column(name = "response", column = responses)
+        
+        selected_ds.save_to_disk(f'responses/{configs["model"]}/{dataset}')
 
 
 

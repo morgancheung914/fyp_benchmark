@@ -14,7 +14,7 @@ class InternistModel(BaseModel):
         
 
         generated_ids = self.model.generate(model_inputs, max_new_tokens=1000, do_sample=True)
-        decoded = self.tokenizer.batch_d4ecode(generated_ids)
+        decoded = self.tokenizer.batch_decode(generated_ids)
         return decoded
 
     def batch_predict(self, input_text, max_length, num_return_seq, temperature):
@@ -30,9 +30,13 @@ class InternistModel(BaseModel):
         encoded = self.tokenizer.apply_chat_template(input_text, add_generation_prompt=True, padding = True, return_tensors="pt")
 
         
-
+        print(encoded.shape)
         model_inputs = encoded.to(self.device)
 
-        generated_ids = self.model.generate(model_inputs, max_new_tokens=100, do_sample=True)
+        generated_ids = self.model.generate(model_inputs, max_new_tokens=max_length, do_sample=True)
+
+       
+        generated_ids = generated_ids[:,encoded.shape[-1]:]
         decoded = self.tokenizer.batch_decode(generated_ids)
+        
         return decoded
