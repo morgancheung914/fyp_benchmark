@@ -62,7 +62,7 @@ for dataset in list(datasets_dict.keys()):
         for batch in tqdm(dataloader):
 
             batch_responses = (model.batch_predict(batch, max_length = 50, num_return_seq = 1, temperature = 1))
-            print(batch_responses)
+            #print(batch_responses)
             responses.extend(batch_responses)
         selected_ds = selected_ds.add_column(name = "response", column = responses)
         

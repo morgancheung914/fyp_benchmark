@@ -1,4 +1,21 @@
 dataset:
   dataset_names: 
     - MMLU_biology
-model: Internist
+    - MMLU_anatomy
+    - MMLU_medicine
+    - MMLU_clinical
+    - PubMedQA
+
+model: Med42
+evaluate:
+  
+  chosen_datasets:
+  # Uncomment the datasets you would lPubMedQAike to evaluate 
+
+   MMLU_biology: "responses/{{ model }}/MMLU_biology"
+   #MMLU_anatomy: "responses/{{ model }}/MMLU_anatomy"
+   # MMLU_medicine: "responses/{{ model }}/MMLU_biology"
+   # MMLU_clinical: "responses/{{ model }}/MMLU_biology"
+   # PubMedQA: "responses/{{ model }}/PubMedQA"
+  
+  
