@@ -26,7 +26,10 @@ class BaseModel:
         # TODO: allow config device from config files
         self.device = torch.device("cuda" if torch.cuda.is_available else "cpu")
         
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_id, cache_dir = cache_dir)
+        if ("Autoregressive" in self.config) and (self.config["Autoregressive"] == True):
+            self.tokenizer = AutoTokenizer.from_pretrained(self.model_id, cache_dir = cache_dir, padding_side = 'left')
+        else: 
+            self.tokenizer = AutoTokenizer.from_pretrained(self.model_id, cache_dir = cache_dir)
         self.model = AutoModelForCausalLM.from_pretrained(self.model_id, cache_dir = cache_dir, device_map="auto")
         
         print(f">Bench> Model {self.internal_id} loaded.")

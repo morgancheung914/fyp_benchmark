@@ -2,7 +2,7 @@ from src.base_model import BaseModel
 import torch
 class InternistModel(BaseModel):
     def __init__(self, config=None):
-        super().__init__(config, internal_id = "Internist", model_id = "internistai/base-7b-v0.2")
+        super().__init__(config={"Autoregressive": True}, internal_id = "Internist", model_id = "internistai/base-7b-v0.2")
 
     def predict(self, input_text, max_length, num_return_seq, temperature):
 

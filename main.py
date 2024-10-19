@@ -7,6 +7,7 @@ from preprocess import process_data
 from transformers import DefaultDataCollator
 from torch.utils.data import DataLoader
 import yaml
+from tqdm import tqdm 
 
 
 with open('config.yaml', 'r') as file:
@@ -49,14 +50,16 @@ for dataset in list(datasets_dict.keys()):
             selected_ds = datasets_dict[dataset]['test']
             ds_test = [[{"role": "system", "content": i['sys_content']},
                 {"role": "user", "content": i['user_content']}] for i in selected_ds]
-            
+        
+        print(f">Bench>: Datasets preprocessing for {dataset} finished.")
 
         #test for deterministicness
 
         dataloader = DataLoader(ds_test, batch_size = 3, shuffle=False, collate_fn = lambda x: x)
         responses = []
-        
-        for batch in dataloader:
+        print(f">Bench>: Starting inference on {dataset}.")
+
+        for batch in tqdm(dataloader):
 
             batch_responses = (model.batch_predict(batch, max_length = 50, num_return_seq = 1, temperature = 1))
             print(batch_responses)
@@ -66,7 +69,7 @@ for dataset in list(datasets_dict.keys()):
         selected_ds.save_to_disk(f'responses/{configs["model"]}/{dataset}')
 
 
-
+        print(f">Bench>: Inferencing on {dataset} finished.")
 
 
 
