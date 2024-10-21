@@ -14,8 +14,8 @@ evaluate:
 
    MMLU_biology: "responses/{{ model }}/MMLU_biology"
    #MMLU_anatomy: "responses/{{ model }}/MMLU_anatomy"
-   # MMLU_medicine: "responses/{{ model }}/MMLU_biology"
-   # MMLU_clinical: "responses/{{ model }}/MMLU_biology"
-   # PubMedQA: "responses/{{ model }}/PubMedQA"
+   #MMLU_medicine: "responses/{{ model }}/MMLU_medicine"
+   #MMLU_clinical: "responses/{{ model }}/MMLU_clinical"
+   #PubMedQA: "responses/{{ model }}/PubMedQA"
   
   

@@ -5,6 +5,14 @@ import yaml
 from jinja2 import Template
 import os 
 from groq import Groq
+import string 
+
+def remove_punctuation_and_whitespace(input_string):
+    # Remove punctuation
+    no_punctuation = input_string.translate(str.maketrans('', '', string.punctuation))
+    # Remove whitespace
+    no_whitespace = no_punctuation.replace(" ", "").replace("\n", "").replace("\t", "")
+    return no_whitespace
 
 # Function to query the LLaMA3 model
 def query_llama3(text, dataset_name):
@@ -24,14 +32,31 @@ def query_llama3(text, dataset_name):
     }
     
     ]
-    
-    chat_completion = client.chat.completions.create(
-        messages = messages,
-        model = "llama-3.1-70b-versatile"
+
+    ans = None
+    retry_count = 0
+    # Reprompt answer if short answer does not match
+
+    while (ans not in ["A", "B", "C", "D", "Yes", "No", "Maybe"] and retry_count <= 3):
+        chat_completion = client.chat.completions.create(
+            messages = messages,
+            model = "llama-3.1-70b-versatile"
+            
+        )
         
-    )
+        ans = chat_completion.choices[0].message.content
+        ans = remove_punctuation_and_whitespace(ans)
+        
+        retry_count += 1
+
+    if ans in ["A", "B", "C", "D", "Yes", "No", "Maybe"]:
+        print(f"Parseable answer: {ans} received")
+        return ans
+
+    else:
+        print(f"Unparseable answer: {ans} received")
+        return ans + "<UPB>"
     
-    return chat_completion.choices[0].message.content
 
 
     # Make the request
@@ -55,7 +80,7 @@ def evaluate(dataset_path, dataset_name, model_name):
     processed_dataset = dataset.map(process_example, fn_kwargs={"dataset_name": dataset_name})
 
     # Save the updated dataset
-    processed_dataset.to_json(f"shortened/{model_name}/{dataset_name}")
+    processed_dataset.to_json(f"shortened/{model_name}/{dataset_name}", lines=False, index=True)
 
     print(f">Eval>: {dataset_name} answer processing finished and saved.")
 
