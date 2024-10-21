@@ -69,4 +69,4 @@ def process_data(dataset, cache_dir): # takes in dataset and cache_dir configs
         clinical_ds = load_dataset("cais/mmlu", "clinical_knowledge", cache_dir=cache_dir) # test, validation 
         clinical_ds = MMLU_formatter(clinical_ds)
 
-    return {"PubMedQA": PubMedQA_ds, "MedMCQA_ds": MedMCQA_ds, "MMLU_anatomy": anatomy_ds, "MMLU_biology": biology_ds, "MMLU_medicine": medicine_ds, "MMLU_clinical": clinical_ds}
+    return {"PubMedQA": PubMedQA_ds, "MedMCQA": MedMCQA_ds, "MMLU_anatomy": anatomy_ds, "MMLU_biology": biology_ds, "MMLU_medicine": medicine_ds, "MMLU_clinical": clinical_ds}
