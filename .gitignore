@@ -4,3 +4,4 @@ dataset/cache/
 responses/
 processed_dataset/
 __pycache__ 
+config.yaml

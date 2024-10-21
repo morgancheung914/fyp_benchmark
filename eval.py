@@ -80,7 +80,7 @@ def evaluate(dataset_path, dataset_name, model_name):
     processed_dataset = dataset.map(process_example, fn_kwargs={"dataset_name": dataset_name})
 
     # Save the updated dataset
-    processed_dataset.to_json(f"shortened/{model_name}/{dataset_name}", lines=False, index=True)
+    processed_dataset.to_json(f"shortened/{model_name}/{dataset_name}", lines=False)
 
     print(f">Eval>: {dataset_name} answer processing finished and saved.")
 
