@@ -36,7 +36,7 @@ def process_data(dataset, cache_dir): # takes in dataset and cache_dir configs
     
     # {'id', 'question', 'opa', 'opb', 'opc', 'opd', 'cop', 'choice_type', 'exp', 'subject_name', 'topic_name'}
     if 'MedMCQA' in dataset:
-        MedMCQA_ds = load_dataset("openlifescienceai/medmcqa", cache=cache_dir) # train, validation 
+        MedMCQA_ds = load_dataset("openlifescienceai/medmcqa", cache_dir=cache_dir) # train, validation 
 
         # adding system content and user content 
         MedMCQA_ds['train'] = MedMCQA_ds['train'].add_column(name="sys_content", column=[
