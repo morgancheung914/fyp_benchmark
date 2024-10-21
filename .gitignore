@@ -3,4 +3,5 @@ benchenv/
 dataset/cache/
 responses/
 processed_dataset/
-__pycache__ 
+shortened/
+__pycache__/
