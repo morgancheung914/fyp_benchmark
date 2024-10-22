@@ -101,3 +101,11 @@ To navigate between panes use `Ctrl-b o` or `Ctrl-b <arrows>`
 To detach from session use `Ctrl-b d`
 
 To kill session use `Ctrl-b :` to open command mode and write `kill-session`
+
+
+##　Groq API inference
+
+write the following into ~/.bashrc
+
+`export GROQ_API_KEY=your_key_here`
+

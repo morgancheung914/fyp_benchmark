@@ -4,7 +4,7 @@ class Llama3Model(BaseModel):
     def __init__(self, config=None):
         super().__init__(config={"Autoregressive": True}, internal_id = "Llama3", model_id = "meta-llama/Meta-Llama-3-8B-Instruct")
         
-    def predict(self, input_text, max_length, num_return_seq, temperature):
+    def predict(self, input_text, max_length, num_return_seq, temperature, top_p):
 
         input_ids = self.tokenizer.apply_chat_template(
         input_text,
@@ -29,7 +29,7 @@ class Llama3Model(BaseModel):
         return decoded_response
 
     
-    def batch_predict(self, input_text, max_length, num_return_seq, temperature):
+    def batch_predict(self, input_text, max_length, num_return_seq, temperature, top_p):
 
         
         

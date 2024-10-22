@@ -1,13 +1,15 @@
 dataset:
   dataset_names: 
-    - MMLU_biology
-    - MMLU_anatomy
-    - MMLU_medicine
-    - MMLU_clinical
-    - PubMedQA
-
+    #- MMLU_biology
+    #- MMLU_anatomy
+    #- MMLU_medicine
+    #- MMLU_clinical
+    #- PubMedQA
+    - MedMCQA
 model: Internist
 
+generation:
+  few_shot: False
 response:
   
   chosen_datasets:

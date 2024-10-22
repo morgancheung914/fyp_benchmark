@@ -27,10 +27,10 @@ class BaseModel:
         self.device = torch.device("cuda" if torch.cuda.is_available else "cpu")
         
         if ("Autoregressive" in self.config) and (self.config["Autoregressive"] == True):
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model_id, cache_dir = cache_dir, padding_side = 'left')
+            self.tokenizer = AutoTokenizer.from_pretrained(self.model_id, cache_dir = cache_dir, padding_side = 'left', trust_remote_code=True)
         else: 
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model_id, cache_dir = cache_dir)
-        self.model = AutoModelForCausalLM.from_pretrained(self.model_id, cache_dir = cache_dir, device_map="auto")
+            self.tokenizer = AutoTokenizer.from_pretrained(self.model_id, cache_dir = cache_dir, trust_remote_code=True)
+        self.model = AutoModelForCausalLM.from_pretrained(self.model_id, cache_dir = cache_dir, device_map="auto", trust_remote_code=True)
         
         print(f">Bench> Model {self.internal_id} loaded.")
 
