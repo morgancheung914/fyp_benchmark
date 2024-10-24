@@ -29,7 +29,7 @@ bench_datasets = set(configs['dataset']['dataset_names'])
 datasets_dict = process_data(bench_datasets, 'dataset/cache')
 print(f">Bench>: Datasets loaded: {configs['dataset']['dataset_names']}")
 
-
+few_shot = configs['generation']['few_shot']
 
 # inference 
 for dataset in list(datasets_dict.keys()):
@@ -44,8 +44,31 @@ for dataset in list(datasets_dict.keys()):
         # parse the contents into the designated prompt template 
         if dataset == 'MedMCQA':
             selected_ds = datasets_dict[dataset]['validation']
-            ds_test = [[{"role": "system", "content": i['sys_content']},
-                {"role": "user", "content": i['user_content']}] for i in selected_ds]
+
+            if few_shot:
+                fs_ds = datasets_dict[dataset]["train"]
+                class_map = {0: "a", 1: "b", 2: "c", 3: "d"}
+                
+                few_shot_prompt = f""" Here I will give you a few examples:
+                Question 1: {fs_ds[0]['user_content']}
+                Answer 1: {class_map[fs_ds[0]["cop"]]}
+
+                Question 2: {fs_ds[1]['user_content']}
+                Answer 2: {class_map[fs_ds[1]["cop"]]}
+
+                Question 3: {fs_ds[2]['user_content']}
+                Answer 3: {class_map[fs_ds[2]["cop"]]}
+
+                Now please answer the user's question:
+                """
+                ds_test = [[
+                    {"role": "system", "content": i['sys_content'] + few_shot_prompt},
+                    
+                    {"role": "user", "content": i['user_content']}] for i in selected_ds]
+            else:
+
+                ds_test = [[{"role": "system", "content": i['sys_content']},
+                    {"role": "user", "content": i['user_content']}] for i in selected_ds]
         else:   
             selected_ds = datasets_dict[dataset]['test']
             ds_test = [[{"role": "system", "content": i['sys_content']},
@@ -60,8 +83,8 @@ for dataset in list(datasets_dict.keys()):
         print(f">Bench>: Starting inference on {dataset}.")
 
         for batch in tqdm(dataloader):
-
-            batch_responses = (model.batch_predict(batch, max_length = 50, num_return_seq = 1, temperature = 1))
+            #print(batch)
+            batch_responses = (model.batch_predict(batch, max_length = 50, num_return_seq = 1, temperature = 1, top_p = 0.9))
             #print(batch_responses)
             responses.extend(batch_responses)
         selected_ds = selected_ds.add_column(name = "response", column = responses)

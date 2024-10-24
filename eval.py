@@ -7,25 +7,29 @@ with open('config.yaml', 'r') as file:
 
 dir = configs['shortened']
 
+total_acc = []
 for file in os.listdir(dir):
     with open(os.path.join(dir, file), 'r') as f:
         data = json.load(f)
 
     correct = 0
     for i in data:
-        if file[:4] == 'MMLU':
-            if i["processed_answer"] not in ["A", "B", "C", "D", "Yes", "No", "Maybe"]: continue # ignore appropriate reponse 
-            
-            elif ord(i["processed_answer"]) - 65 == i['answer']:
+        if i["processed_answer"] in ["A", "B", "C", "D"]: # multiple choice answers 
+            if file[:4] == 'MMLU':
+                if ord(i["processed_answer"]) - 65 == i['answer']: # from MMLU
+                    correct += 1
+
+            else:
+                if ord(i["processed_answer"]) - 65 == i['cop']: # from MedMCQA
+                    
+                    correct += 1
+
+        elif i["processed_answer"] in ["Yes", "No", "Maybe"]: # MedMCQA
+            if i["processed_answer"].lower() == i['final_decision']:
                 correct += 1
-        elif file == 'PubMedQA':
-            if i["processed_answer"] not in ["A", "B", "C", "D", "Yes", "No", "Maybe"]: continue # ignore appropriate reponse 
-            
-            elif i["processed_answer"].lower() == i['final_decision']:
-                correct += 1
-        else:
-            if i["processed_answer"] not in ["A", "B", "C", "D", "Yes", "No", "Maybe"]: continue # ignore appropriate reponse 
-            
-            elif ord(i["processed_answer"]) - 65 == i['cop']:
-                correct += 1
-    print(f"{file}: accuracy is {correct/len(data)}")
+
+    total_acc.append(correct/len(data))
+    print(f"{file}: {total_acc[-1]}")
+    
+
+print(f"Average: {sum(total_acc)/len(total_acc)}")

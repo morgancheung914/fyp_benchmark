@@ -4,7 +4,7 @@ class Med42Model(BaseModel):
     def __init__(self, config=None):
         super().__init__(config={"Autoregressive": True}, internal_id = "Med42", model_id = "m42-health/Llama3-Med42-8B")
         
-    def predict(self, input_text, max_length, num_return_seq, temperature):
+    def predict(self, input_text, max_length, num_return_seq, temperature, top_p):
 
         input_ids = self.tokenizer.apply_chat_template(
         input_text,
@@ -28,7 +28,7 @@ class Med42Model(BaseModel):
 
         return decoded_response
     
-    def batch_predict(self, input_text, max_length, num_return_seq, temperature):
+    def batch_predict(self, input_text, max_length, num_return_seq, temperature, top_p):
 
         
         
