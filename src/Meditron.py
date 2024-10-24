@@ -8,7 +8,7 @@ class MeditronModel(BaseModel):
         return f"{input[0]['content']}\n ###User: {input[1]['content']}\n ###Assistant: "
 
     def batch_predict(self, input_text, max_length, num_return_seq, temperature):
-        for input_text in input:
-            inputs = self.tokenizer(self.chat_template(input_text), return_tensors="pt")
+        for i in input_text:
+            inputs = self.tokenizer(self.chat_template(i), return_tensors="pt")
             generate_ids = self.model.generate(inputs.input_ids, max_length=max_length)
             return self.tokenizer.decode(generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
