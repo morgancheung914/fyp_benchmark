@@ -89,7 +89,10 @@ def process_example(example, dataset_name):
 def evaluate(dataset_path, dataset_name, model_name, savedir):
     
     dataset = load_from_disk(dataset_path)
+    if dataset_name == "MedMCQA":
 
+        # only use the first 1000 rows
+        dataset = dataset.select(range(1000))
     # Process each response in the dataset
     
     processed_dataset = dataset.map(process_example, fn_kwargs={"dataset_name": dataset_name})
