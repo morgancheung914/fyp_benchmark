@@ -139,6 +139,7 @@ def main():
 
 
         d_paths = rendered_config['chosen_datasets']
+        savedir = None
     else:
         model_name = args.model 
         dp = args.dataset
