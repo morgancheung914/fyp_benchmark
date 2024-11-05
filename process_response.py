@@ -126,11 +126,10 @@ def dataset_concat(ds, save_path):
         prog_data = None
     
     # Handle compatibility
-    if 'cop' in ds.column_names:
+    if ('cop' in ds.column_names) and (prog_data is not None):
         ds = ds.cast(prog_data.features)
     
-    print(ds.features)
-    print(prog_data.features)
+    
     #Concatenate
     if prog_data:
         combined = concatenate_datasets([prog_data, ds])
