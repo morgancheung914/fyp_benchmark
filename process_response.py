@@ -1,6 +1,7 @@
 
 #import requests
 from datasets import load_from_disk
+from datasets import concatenate_datasets
 import yaml
 from jinja2 import Template
 import os 
@@ -9,6 +10,7 @@ import groq
 import string 
 import time
 import argparse
+from datasets import Dataset
 
 def remove_punctuation_and_whitespace(input_string):
     # Remove punctuation
@@ -16,6 +18,13 @@ def remove_punctuation_and_whitespace(input_string):
     # Remove whitespace
     no_whitespace = no_punctuation.replace(" ", "").replace("\n", "").replace("\t", "")
     return no_whitespace
+
+def load_if_exists(dataset_path):
+    if os.path.exists(dataset_path):
+        dataset = Dataset.from_json(dataset_path)
+        return dataset[-1]["id"], dataset
+    else: 
+        return None, None
 
 # Function to query the LLaMA3 model
 def query_llama3(text, dataset_name):
@@ -27,11 +36,36 @@ def query_llama3(text, dataset_name):
         choices = "A, B, C or D"
     if dataset_name in ["PubMedQA"]:
         choices = "Yes No or Maybe"
-        
+    
+    examples = """ String 1:  \"a
+Reasoning:The best advice to a 29-year-old pregnant woman with a previous child with Down Syndrome is to have a test done as her age is below 35 years (Choice A). This is\"
+Answer 1: A
+
+String 2: \"c
+
+            The best 2 answer are A and D.
+
+            Question: Concentration of tropicamide:, Choices: A: 0.01, B: 0.02, C\"
+Answer 2: C
+
+String 3: \" d
+
+Here is your step-by-step explanation
+
+To answer this question, I will analyze the clinical information given and discuss the possible diagnosis for each choice.
+
+1. Tuberculosis (Ans. A): T \"
+
+Answer 3: D
+
+    """
     messages = [
     {
-        "role": "user", "content": f"""This is a string that answers a biomedical question, please determine the short answer of the sentence from this list of choices: {choices}
-    Please answer with the short answer only and nothing else. This is the string: \"""" + text + "\" This is the end of the string."
+        "role": "user", "content": f"""This is a string that answers a biomedical question, please determine the short answer of the sentence from this list of choices: {choices}, or None if the long answer does not mention any of the choices, usually the choice will be at the start of the string, they could be in upper-case or lower-case
+    Please answer with the short answer only and nothing else. Now here are some examples: {examples}
+
+    
+    And here is the string you need to determine: \"""" + text + "\" This is the end of the string."
     }
     
     ]
@@ -39,7 +73,7 @@ def query_llama3(text, dataset_name):
     ans = None
     retry_count = 0
     # Reprompt answer if short answer does not match
-    print(f"text: {text}")
+    print(f"text: {text}\n")
 
     while (ans not in ["A", "B", "C", "D", "Yes", "No", "Maybe"] and retry_count <= 3):
         
@@ -55,9 +89,11 @@ def query_llama3(text, dataset_name):
             except groq.InternalServerError as e:
                 if attempt == groq_retry_count - 1:
                     print("Retry not working, exiting.")
-                    exit(1)
+                    raise e 
                 print(f"Internal Server Error: {e}, proceeding with retry")
                 time.sleep(30)
+
+                
 
                 
         ans = chat_completion.choices[0].message.content
@@ -80,28 +116,100 @@ def query_llama3(text, dataset_name):
 
     # Extract the response
     #return response_data['choices'][0]['text'].strip()
+def convert_cop_to_int(example):
+    example['cop'] = int(example['cop'])
+    return example
+def dataset_concat(ds, save_path):
+    if os.path.exists(save_path):
+        prog_data = Dataset.from_json(save_path)
+    else:
+        prog_data = None
+    
+    # Handle compatibility
+    if 'cop' in ds.column_names:
+        ds = ds.cast(prog_data.features)
+    
+    print(ds.features)
+    print(prog_data.features)
+    #Concatenate
+    if prog_data:
+        combined = concatenate_datasets([prog_data, ds])
+
+        
+    else:
+        combined = ds 
+
+    
+    #Save to path
+    combined.to_json(save_path, lines=False)
 
 def process_example(example, dataset_name):
     example["processed_answer"] = query_llama3(example["response"], dataset_name)
 
     return example 
 
-def evaluate(dataset_path, dataset_name, model_name, savedir):
+def evaluate(dataset_path, dataset_name, model_name, savedir, few_shot):
     
     dataset = load_from_disk(dataset_path)
+    dataset = dataset.map(lambda example, idx: {"id": idx}, with_indices=True)
     if dataset_name == "MedMCQA":
-
+       
         # only use the first 1000 rows
         dataset = dataset.select(range(1000))
-    # Process each response in the dataset
-    
-    processed_dataset = dataset.map(process_example, fn_kwargs={"dataset_name": dataset_name})
 
-    if savedir:
-        processed_dataset.to_json(f"{savedir}", lines=False)
-    # Save the updated dataset
+    # Check previous progress 
+    if (savedir == None):
+        savedir = f"shortened/{model_name}/{dataset_name}_fsp" if few_shot else f"shortened/{model_name}/{dataset_name}"
+    
+    progress_id, progress_dataset = load_if_exists(savedir)
+    if progress_id: 
+        start_index = progress_id + 1
+        dataset = dataset.select(range(start_index, 1000)) if (dataset_name == "MedMCQA") else dataset.select(range(start_index, len(dataset)))
+        print(f">Eval>: Progress found, starting from row {start_index}")
     else:
-        processed_dataset.to_json(f"shortened/{model_name}/{dataset_name}", lines=False)
+        start_index = 0
+        print(">Eval>: No Progress found, starting fresh.")
+    
+    chunk_size = 100
+    
+    # Process each response in the dataset
+    local_start = 0
+    try:
+        while local_start < len(dataset):
+            end_index = min(local_start + chunk_size, len(dataset))
+            chunk = dataset.select(range(local_start, end_index))
+
+            ## process chunk          
+            processed_chunk = chunk.map(process_example, fn_kwargs={"dataset_name": dataset_name})
+            
+            #processed_dataset = dataset.map(process_example, fn_kwargs={"dataset_name": dataset_name})
+            print(processed_chunk[0])
+            # Save the updated dataset
+            dataset_concat(processed_chunk, savedir)
+            print(f">Eval>: rows {start_index + local_start} to {start_index + end_index} saved")
+            local_start = end_index + 1
+    except KeyboardInterrupt:
+        #dataset_concat(processed_dataset, savedir)
+        print(">Eval>: Keyboard Interrupt.")
+    except groq.InternalServerError: 
+        #dataset_concat(processed_dataset, savedir)
+        print(">Eval>: Exception Occured.")
+    
+
+    # Concatenate progress with new work 
+    
+    
+
+    
+    # if savedir:
+    #     processed_dataset.to_json(f"{savedir}", lines=False)
+    
+    # else:
+    #     if few_shot: 
+    #         processed_dataset.to_json(f"shortened/{model_name}/{dataset_name}_fsp", lines=False)
+    #     else:
+            
+    #         processed_dataset.to_json(f"shortened/{model_name}/{dataset_name}", lines=False)
 
     print(f">Eval>: {dataset_name} answer processing finished and saved.")
 
@@ -120,6 +228,11 @@ def main():
     parser.add_argument('-m', '--model', type=str, help='Model name or path')
     parser.add_argument('-n', '--dname', type=str, help="Name of the dataset")
     parser.add_argument('-s', '--savedir', type=str, help="directory to be saved")
+    parser.add_argument(
+    "-f", "--fewshot",
+    action="store_true",
+    help="Enable few-shot mode. If specified, it will be True; otherwise, False."
+)
     args = parser.parse_args()
 
     if args.config:
@@ -129,7 +242,16 @@ def main():
         model_name = configs['model']
 
         # Create a Jinja2 template from the content
-        template = Template(yaml.dump(configs['response']))
+        #template = Template(yaml.dump({'response': configs['response'], }))
+
+        template_content = yaml.dump({
+    'dataset': configs['dataset'],
+    'model': configs['model'],
+    'generation': configs['generation'],
+    'response': configs['response'],
+    'shortened': configs['shortened']
+})
+        template = Template(template_content)
 
         # Render the template with variables
         rendered_content = template.render(model = model_name)
@@ -138,21 +260,24 @@ def main():
         rendered_config = yaml.safe_load(rendered_content)
 
 
-        d_paths = rendered_config['chosen_datasets']
+        d_paths = rendered_config['response']['chosen_datasets']
         savedir = None
+        few_shot = rendered_config['generation']['few_shot']
+        print(f"savedir at {savedir}")
     else:
         model_name = args.model 
         dp = args.dataset
         dn = args.dname
         savedir = args.savedir #currently only support one processing one dataset at one script instance
         d_paths = {dn: i for i in dp}
-
+        few_shot = args.fewshot
         print(d_paths)
     for d in list(d_paths.keys()):
         #get dataset name and path
         print(f">Eval>: Processing answers by {model_name} for {d}")
         d_path = d_paths[d]
+        
 
-        evaluate(d_path, d, model_name, savedir)
+        evaluate(d_path, d, model_name, savedir, few_shot)
 
 main()
