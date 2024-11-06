@@ -6,7 +6,7 @@ dataset:
     #- MMLU_clinical
     #- PubMedQA
     - MedMCQA
-model: Internist
+model: Meditron
 
 generation:
   few_shot: False
@@ -15,10 +15,11 @@ response:
   chosen_datasets:
   # Uncomment the datasets you would lPubMedQAike to evaluate 
 
-   #MMLU_biology: "responses/{{ model }}/MMLU_biology"
-   MMLU_anatomy: "responses/{{ model }}/MMLU_anatomy"
-   #MMLU_medicine: "responses/{{ model }}/MMLU_medicine"
-   #MMLU_clinical: "responses/{{ model }}/MMLU_clinical"
+   #MMLU_biology: "responses/{{ model }}/MMLU_biology" 144
+   #MMLU_anatomy: "responses/{{ model }}/MMLU_anatomy" 135
+   #MMLU_medicine: "responses/{{ model }}/MMLU_medicine" 173
+   #MMLU_clinical: "responses/{{ model }}/MMLU_clinical" 265
    #PubMedQA: "responses/{{ model }}/PubMedQA"
+   MedMCQA: "responses/{{ model }}/MedMCQA"
 
-shortened: shortened/Med42
+shortened: shortened/Meditron

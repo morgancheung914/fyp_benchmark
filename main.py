@@ -15,6 +15,7 @@ with open('config.yaml', 'r') as file:
 
 
 # Choosing the models from the config 
+
 model_file = __import__(f'''src.{configs['model']}''', fromlist=[configs['model']+"Model"])
 model_chosen = getattr(model_file, configs['model']+"Model")
 #model = Llama3(None)
@@ -22,20 +23,21 @@ model_chosen = getattr(model_file, configs['model']+"Model")
 model = model_chosen(None)
 model.load_model()
 
+
 # get the required datasets from config 
 bench_datasets = set(configs['dataset']['dataset_names'])
+number_shot = configs['generation']['few_shot']
 
 # load datasets, the returned dict stores the processed datasetDict w.r.t each dataset 
-datasets_dict = process_data(bench_datasets, 'dataset/cache')
+datasets_dict = process_data(bench_datasets, 'dataset/cache', number_shot)
 print(f">Bench>: Datasets loaded: {configs['dataset']['dataset_names']}")
 
-few_shot = configs['generation']['few_shot']
 
 # inference 
 for dataset in list(datasets_dict.keys()):
     if datasets_dict[dataset] == None:
         if dataset in bench_datasets:
-            print("Dataset processing error")
+            print(f">Error>: Error encountered when processing {dataset}")
 
         else:
             continue 
@@ -48,37 +50,14 @@ for dataset in list(datasets_dict.keys()):
         else:   
             selected_ds = datasets_dict[dataset]['test']
 
-        if few_shot:
-            fs_ds = datasets_dict[dataset]["train"]
-            class_map = {0: "a", 1: "b", 2: "c", 3: "d"}
-            
-            few_shot_prompt = f""" Here I will give you a few examples:
-            Question 1: {fs_ds[0]['user_content']}
-            Answer 1: {class_map[fs_ds[0]["cop"]]}
-
-            Question 2: {fs_ds[1]['user_content']}
-            Answer 2: {class_map[fs_ds[1]["cop"]]}
-
-            Question 3: {fs_ds[2]['user_content']}
-            Answer 3: {class_map[fs_ds[2]["cop"]]}
-
-            Now please answer the user's question:
-            """
-            ds_test = [[
-                {"role": "system", "content": i['sys_content'] + few_shot_prompt},
-                
-                {"role": "user", "content": i['user_content']}] for i in selected_ds]
-        else:
-
-            ds_test = [[{"role": "system", "content": i['sys_content']},
-                {"role": "user", "content": i['user_content']}] for i in selected_ds]
-                
-        
-        
-            
         print(f">Bench>: Datasets preprocessing for {dataset} finished.")
 
         #test for deterministicness
+
+        ds_test = [[
+                {"role": "system", "content": i['sys_content']},
+                
+                {"role": "user", "content": i['user_content']}] for i in selected_ds]
 
         dataloader = DataLoader(ds_test, batch_size = 3, shuffle=False, collate_fn = lambda x: x)
         responses = []
@@ -91,7 +70,7 @@ for dataset in list(datasets_dict.keys()):
             responses.extend(batch_responses)
         selected_ds = selected_ds.add_column(name = "response", column = responses)
         
-        selected_ds.save_to_disk(f'responses/{configs["model"]}/{dataset}_1000')
+        selected_ds.save_to_disk(f'responses/{configs["model"]}/{number_shot}-shot/{dataset}')
 
 
         print(f">Bench>: Inferencing on {dataset} finished.")
