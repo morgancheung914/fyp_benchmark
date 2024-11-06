@@ -46,6 +46,7 @@ for dataset in list(datasets_dict.keys()):
         # parse the contents into the designated prompt template 
         if dataset == 'MedMCQA':
             selected_ds = datasets_dict[dataset]['validation']
+            selected_ds = selected_ds.select(range(1000))
             
         else:   
             selected_ds = datasets_dict[dataset]['test']
@@ -67,10 +68,10 @@ for dataset in list(datasets_dict.keys()):
             #print(batch)
             batch_responses = (model.batch_predict(batch, max_length = 50, num_return_seq = 1, temperature = 1, top_p = 0.9))
             #print(batch_responses)
-            responses.extend(batch_responses)
+            responses.extend(batch_responses) 
         selected_ds = selected_ds.add_column(name = "response", column = responses)
         
-        selected_ds.save_to_disk(f'responses/{configs["model"]}/{number_shot}-shot/{dataset}')
+        selected_ds.save_to_disk(f'responses/{configs["model"]}/{number_shot}-shot/{dataset}_1000')
 
 
         print(f">Bench>: Inferencing on {dataset} finished.")

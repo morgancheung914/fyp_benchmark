@@ -87,10 +87,10 @@ config: `export SLURM_CONF=/opt1/slurm/gpu-slurm.conf`
 
 
 `srun -p gpu_2h -c 4 --gres=gpu:2 -C "rtx3090" --pty /bin/bash`
-
+or 
+`srun -p gpu_2h -c 4 --gres=gpu:2 -C "rtx2080" --pty /bin/bash`
 or when the queue is long 
 `srun -p gpu_2h -c 4 --gres=gpu:8 --pty /bin/bash`
-
 
 ## Using tmux to spawn multiple shells within the same job
 
