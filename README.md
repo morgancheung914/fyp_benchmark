@@ -105,9 +105,23 @@ To detach from session use `Ctrl-b d`
 To kill session use `Ctrl-b :` to open command mode and write `kill-session`
 
 
-##　Groq API inference
+## How to use the shorten script 
 
 write the following into ~/.bashrc
 
 `export GROQ_API_KEY=your_key_here`
 
+Then use 
+`python process_response.py -c config.yaml`, specifying the response paths to be shortened in response.chosen_datsets and the few_shot parameter as True or False.
+
+
+The script will create shortened/ and include the shortened dataset.
+
+## Cycle through multiple Groq API_keys
+
+A shell script is created for the ease of replacing API_keys once they run out of quota, simply run
+`./autoshort_3.sh`
+In the script, replace these few things:
+1. groq.txt -> a txt file path that contains the API keys
+2. log_file= -> a log file path 
+3. config_4.yaml -> a yaml file you wish to use on process_response.py

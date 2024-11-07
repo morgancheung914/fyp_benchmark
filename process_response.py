@@ -126,9 +126,12 @@ def dataset_concat(ds, save_path):
         prog_data = None
     
     # Handle compatibility
-    if ('cop' in ds.column_names) and (prog_data is not None):
+    # if ('cop' in ds.column_names) and (prog_data is not None):
+    #     ds = ds.cast(prog_data.features)
+    # if ('answer' in ds.column_names) and (prog_data is not None):
+    #     ds = ds.cast(prog_data.features)
+    if prog_data is not None:
         ds = ds.cast(prog_data.features)
-    
     
     #Concatenate
     if prog_data:
@@ -158,11 +161,14 @@ def evaluate(dataset_path, dataset_name, model_name, savedir, few_shot):
 
     # Check previous progress 
     if (savedir == None):
-        savedir = f"shortened/{model_name}/{dataset_name}_fsp" if few_shot else f"shortened/{model_name}/{dataset_name}"
-    
+        savedir = f"shortened/{model_name}/fsp/{dataset_name}_1shot" if few_shot else f"shortened/{model_name}/{dataset_name}"
+    print(f"savedir at {savedir}")
     progress_id, progress_dataset = load_if_exists(savedir)
     if progress_id: 
         start_index = progress_id + 1
+    
+        if start_index >= len(dataset):
+            return None
         dataset = dataset.select(range(start_index, 1000)) if (dataset_name == "MedMCQA") else dataset.select(range(start_index, len(dataset)))
         print(f">Eval>: Progress found, starting from row {start_index}")
     else:
@@ -235,7 +241,7 @@ def main():
     args = parser.parse_args()
 
     if args.config:
-        with open('config.yaml', 'r') as file:
+        with open(args.config, 'r') as file:
             configs = yaml.safe_load(file)
 
         model_name = configs['model']
@@ -262,7 +268,7 @@ def main():
         d_paths = rendered_config['response']['chosen_datasets']
         savedir = None
         few_shot = rendered_config['generation']['few_shot']
-        print(f"savedir at {savedir}")
+        
     else:
         model_name = args.model 
         dp = args.dataset
