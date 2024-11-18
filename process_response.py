@@ -161,7 +161,7 @@ def evaluate(dataset_path, dataset_name, model_name, savedir, few_shot):
 
     # Check previous progress 
     if (savedir == None):
-        savedir = f"shortened/{model_name}/fsp/{dataset_name}_1shot" if few_shot else f"shortened/{model_name}/{dataset_name}"
+        savedir = f"shortened/{model_name}/fsp/{dataset_name}_{few_shot}shot" if few_shot else f"shortened/{model_name}/{dataset_name}"
     print(f"savedir at {savedir}")
     progress_id, progress_dataset = load_if_exists(savedir)
     if progress_id: 
@@ -266,7 +266,7 @@ def main():
 
 
         d_paths = rendered_config['response']['chosen_datasets']
-        savedir = None
+        savedir = None if rendered_config['response']['shortened_save_path'] is None else rendered_config['response']['shortened_save_path']
         few_shot = rendered_config['generation']['few_shot']
         
     else:
