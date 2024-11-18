@@ -245,6 +245,7 @@ def main():
             configs = yaml.safe_load(file)
 
         model_name = configs['model']
+        fs = configs['generation']['few_shot']
 
         # Create a Jinja2 template from the content
         #template = Template(yaml.dump({'response': configs['response'], }))
@@ -259,7 +260,7 @@ def main():
         template = Template(template_content)
 
         # Render the template with variables
-        rendered_content = template.render(model = model_name)
+        rendered_content = template.render(model = model_name, fs = fs)
 
         # Load the rendered YAML
         rendered_config = yaml.safe_load(rendered_content)
