@@ -6,10 +6,11 @@ dataset:
     #- MMLU_clinical
     #- PubMedQA
     - MedMCQA
-model: Meditron
+model: Internist
 
 generation:
-  few_shot: False
+  few_shot: 3
+  CoT: True
 response:
   
   chosen_datasets:
@@ -17,9 +18,9 @@ response:
 
    #MMLU_biology: "responses/{{ model }}/MMLU_biology" 144
    #MMLU_anatomy: "responses/{{ model }}/MMLU_anatomy" 135
-   #MMLU_medicine: "responses/{{ model }}/MMLU_medicine" 173
+   #MMLU_medicine: "responses/{{ model }}/3-shot/MMLU_medicine" 173
    #MMLU_clinical: "responses/{{ model }}/MMLU_clinical" 265
    #PubMedQA: "responses/{{ model }}/PubMedQA"
-   MedMCQA: "responses/{{ model }}/MedMCQA"
+   #MedMCQA: "responses/{{ model }}/MedMCQA"
 
 shortened: shortened/Meditron

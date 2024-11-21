@@ -26,7 +26,7 @@ def MMLU_formatter(ds, number_shot):
         return ds 
 
 
-def process_data(dataset, cache_dir, number_shot): # takes in dataset and cache_dir configs 
+def process_data(dataset, cache_dir, number_shot, CoT): # takes in dataset and cache_dir configs 
     PubMedQA_ds, MedMCQA_ds, anatomy_ds, biology_ds, medicine_ds, clinical_ds = None, None, None, None, None, None
     
     # {'pub_id', 'question', 'context', 'long_answer', 'final_decision'}
@@ -69,7 +69,16 @@ def process_data(dataset, cache_dir, number_shot): # takes in dataset and cache_
         ])
 
         sys_prompt = "Please read the question and pick the most suitable choice from A to D, simply answer A, B, C or D."
-        if number_shot: # few-shot preprocessing 
+        if CoT: # Chain of thought processing
+            # Note: Currrently, CoT only supports MedMCQA
+            sys_prompt += " Here I will give you few examples: \n"
+
+            with open("CoT/MedMCQA_CoT.txt", "r") as f:
+                CoT_prompt = f.read()
+
+            sys_prompt += CoT_prompt
+            sys_prompt += "Now please answer the user's question."
+        elif number_shot: # few-shot preprocessing 
             sys_prompt += " Here I will give you few examples: \n"
             fs_ds = MedMCQA_ds["train"]
             for i in range(number_shot):
@@ -78,10 +87,12 @@ def process_data(dataset, cache_dir, number_shot): # takes in dataset and cache_
             
             sys_prompt += "Now please answer the user's question."
 
+        
         MedMCQA_ds['train'] = MedMCQA_ds['train'].add_column(name="sys_content", column=[sys_prompt] * len(MedMCQA_ds['train']))
         MedMCQA_ds['validation'] = MedMCQA_ds['validation'].add_column(name="sys_content", column=[sys_prompt] * len(MedMCQA_ds['validation']))
 
-
+        
+        
     # {'question', 'subject', 'choices', 'answer'}
     if 'MMLU_anatomy' in dataset:  
         anatomy_ds = load_dataset("cais/mmlu", "anatomy", cache_dir=cache_dir) # test, validation 
