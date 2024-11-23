@@ -6,6 +6,8 @@ dataset:
     #- MMLU_clinical
     #- PubMedQA
     - MedMCQA
+    #- HaluEval
+
 model: Internist
 
 generation:

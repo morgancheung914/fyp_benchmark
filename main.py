@@ -50,6 +50,9 @@ for dataset in list(datasets_dict.keys()):
             selected_ds = selected_ds.select(range(1000))
             print(selected_ds[0])
 
+        elif dataset == 'HaluEval':
+            selected_ds = datasets_dict[dataset]['data']
+            selected_ds = selected_ds.select(range(500))
             
         else:   
             selected_ds = datasets_dict[dataset]['test']
@@ -75,10 +78,11 @@ for dataset in list(datasets_dict.keys()):
 
             responses.extend(batch_responses) 
         selected_ds = selected_ds.add_column(name = "response", column = responses)
-        if CoT:
+
+        if CoT: # CoT responses
             selected_ds.save_to_disk(f'responses/{configs["model"]}/CoT/{dataset}_1000')
 
-        elif few_shot:
+        else: # 0-shot, 1-shot, 3-shot reponses
             selected_ds.save_to_disk(f'responses/{configs["model"]}/{number_shot}-shot/{dataset}_1000')
 
 

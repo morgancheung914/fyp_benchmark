@@ -110,4 +110,15 @@ def process_data(dataset, cache_dir, number_shot, CoT): # takes in dataset and c
         clinical_ds = load_dataset("cais/mmlu", "clinical_knowledge", cache_dir=cache_dir) # test, validation 
         clinical_ds = MMLU_formatter(clinical_ds, number_shot)
 
-    return {"PubMedQA": PubMedQA_ds, "MedMCQA": MedMCQA_ds, "MMLU_anatomy": anatomy_ds, "MMLU_biology": biology_ds, "MMLU_medicine": medicine_ds, "MMLU_clinical": clinical_ds}
+    # {'ID', 'user_query', 'chatgpt_response', 'hallucination', 'hallucination_span'}
+    if 'HaluEval' in dataset:
+        halu_ds = load_dataset("pminervini/HaluEval", "general", cache_dir=cache_dir)
+        
+        sys_prompt =  "Look at the following user query and response from chatgpt. Please answer 'yes' if you think the response is a hallucination or 'no' if you think the response is not a hallucination."
+
+        halu_ds['data'] = halu_ds['data'].add_column(name="sys_content", column=[sys_prompt] * len(halu_ds['data']))
+
+        halu_ds['data'] = halu_ds['data'].add_column(name="user_content", column=[
+            f"User query: {i['user_query']}\nChatgpt response: {i['chatgpt_response']}" for i in halu_ds['data']])
+
+    return {"PubMedQA": PubMedQA_ds, "MedMCQA": MedMCQA_ds, "MMLU_anatomy": anatomy_ds, "MMLU_biology": biology_ds, "MMLU_medicine": medicine_ds, "MMLU_clinical": clinical_ds, "HaluEval": halu_ds}
