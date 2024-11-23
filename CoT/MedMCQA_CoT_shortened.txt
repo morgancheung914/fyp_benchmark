@@ -1,0 +1,52 @@
+Example 1: 
+Question: Which of the following pulp horn of primary molar is commonly exposed during restorative procedures? 
+
+Choices: A: Mesiobuccal puplhorn of 1st molars. B: Distobuccal pulp horn of 1st molars. C: Mesiobuccal pulp horn of 2nd molars. D: Distobuccal pulp horn of 2nd molars.
+
+Answer: 
+Key anatomical feature: Pulp horns are prominent in primary molars, with some closer to the surface, making them more likely to be exposed during restorative procedures.
+Evaluate options:
+* Mesiobuccal pulp horn of 1st molars (A): Known for its proximity to the cavity floor in primary molars.
+* Distobuccal pulp horn of 1st molars (B): Less prominent and further from the surface.
+* Mesiobuccal pulp horn of 2nd molars (C): Not commonly exposed.
+* Distobuccal pulp horn of 2nd molars (D): Also less likely to be exposed.
+Clinical knowledge: Mesiobuccal pulp horn of the primary 1st molars is particularly vulnerable due to its anatomical prominence.
+Conclusion: The correct answer is A: Mesiobuccal pulp horn of 1st molars.
+
+
+Example 2:
+
+Question: On abdominal ultrasound gallbladder shows diffuse wall thickening with hyperechoic nodules at neck and comet tail aifacts. The most likely diagnosis will be:
+
+Choices: A: Cholesterol crystals , B: Adenocarcinoma of gallbladder, C: Xanthogranulomatous cholecystitis, D: Adenomyomatosis 
+
+Answer: Key ultrasound findings: Diffuse wall thickening, hyperechoic nodules at neck, and comet tail artifacts.
+Comet tail artifacts: Strongly associated with cholesterol crystals in intramural sinuses.
+Differential diagnosis:
+* Cholesterol crystals (A): No wall thickening.
+* Adenocarcinoma (B): Malignant, irregular mass, no comet tail.
+* Xanthogranulomatous cholecystitis (C): Inflammatory, no comet tail.
+* Adenomyomatosis (D): Wall thickening, diverticula, comet tail.
+Conclusion: The correct answer is D: Adenomyomatosis, confirmed by findings and explanation.
+
+
+Example 3: 
+
+Question: Which of the following statement is not true about glomerular basement membrane? 
+
+Choices: A: Glomerular basement membrane acts as filtration barrier B: Glomerular basement membrane is stained with PAS, C: Type III collagen is present, , D: Glomerular basement membrane is involved in charge dependent filtration. Answer: C 
+
+
+Answer: 
+Key characteristics of the glomerular basement membrane (GBM):
+
+Acts as a filtration barrier, facilitating charge- and size-dependent filtration.
+Stains with PAS (Periodic Acid-Schiff) due to its glycoprotein and collagen content.
+Composed primarily of Type IV collagen and laminin, forming a non-fibrillar mesh.
+Evaluate options:
+
+A: Correct, as the GBM is a filtration barrier.
+B: Correct, as PAS staining highlights GBM components.
+C: Incorrect, as Type III collagen is not a component of the GBM.
+D: Correct, as the GBM is involved in charge-dependent filtration due to its negative charge.
+Conclusion: The correct answer is C: Type III collagen is present, as the GBM is primarily composed of Type IV collagen, not Type III.
