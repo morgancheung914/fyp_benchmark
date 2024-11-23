@@ -27,7 +27,7 @@ def MMLU_formatter(ds, number_shot):
 
 
 def process_data(dataset, cache_dir, number_shot, CoT): # takes in dataset and cache_dir configs 
-    PubMedQA_ds, MedMCQA_ds, anatomy_ds, biology_ds, medicine_ds, clinical_ds = None, None, None, None, None, None
+    PubMedQA_ds, MedMCQA_ds, anatomy_ds, biology_ds, medicine_ds, clinical_ds, halu_ds = None, None, None, None, None, None, None
     
     # {'pub_id', 'question', 'context', 'long_answer', 'final_decision'}
     if 'PubMedQA' in dataset:
