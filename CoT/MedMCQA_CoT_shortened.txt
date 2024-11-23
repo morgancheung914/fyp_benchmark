@@ -3,16 +3,8 @@ Question: Which of the following pulp horn of primary molar is commonly exposed 
 
 Choices: A: Mesiobuccal puplhorn of 1st molars. B: Distobuccal pulp horn of 1st molars. C: Mesiobuccal pulp horn of 2nd molars. D: Distobuccal pulp horn of 2nd molars.
 
-Answer: 
-Key anatomical feature: Pulp horns are prominent in primary molars, with some closer to the surface, making them more likely to be exposed during restorative procedures.
-Evaluate options:
-* Mesiobuccal pulp horn of 1st molars (A): Known for its proximity to the cavity floor in primary molars.
-* Distobuccal pulp horn of 1st molars (B): Less prominent and further from the surface.
-* Mesiobuccal pulp horn of 2nd molars (C): Not commonly exposed.
-* Distobuccal pulp horn of 2nd molars (D): Also less likely to be exposed.
-Clinical knowledge: Mesiobuccal pulp horn of the primary 1st molars is particularly vulnerable due to its anatomical prominence.
-Conclusion: The correct answer is A: Mesiobuccal pulp horn of 1st molars.
-
+Answer:
+During restorative procedures, specific pulp horns are more likely to be exposed due to their prominence and position. For primary molars, the mesiobuccal pulp horn of 1st molars is anatomically more susceptible during cavity preparation. So, the answer is A.
 
 Example 2:
 
@@ -20,14 +12,7 @@ Question: On abdominal ultrasound gallbladder shows diffuse wall thickening with
 
 Choices: A: Cholesterol crystals , B: Adenocarcinoma of gallbladder, C: Xanthogranulomatous cholecystitis, D: Adenomyomatosis 
 
-Answer: Key ultrasound findings: Diffuse wall thickening, hyperechoic nodules at neck, and comet tail artifacts.
-Comet tail artifacts: Strongly associated with cholesterol crystals in intramural sinuses.
-Differential diagnosis:
-* Cholesterol crystals (A): No wall thickening.
-* Adenocarcinoma (B): Malignant, irregular mass, no comet tail.
-* Xanthogranulomatous cholecystitis (C): Inflammatory, no comet tail.
-* Adenomyomatosis (D): Wall thickening, diverticula, comet tail.
-Conclusion: The correct answer is D: Adenomyomatosis, confirmed by findings and explanation.
+Answer:  The ultrasound findings of diffuse wall thickening, hyperechoic nodules, and comet tail artifacts suggest a benign condition with hyperplastic changes. Adenomyomatosis involves gallbladder wall thickening, mucosal overgrowth, and intramural diverticula containing cholesterol crystals, which produce characteristic ultrasound artifacts like the comet-tail sign. So the answer is D.
 
 
 Example 3: 
@@ -38,15 +23,5 @@ Choices: A: Glomerular basement membrane acts as filtration barrier B: Glomerula
 
 
 Answer: 
-Key characteristics of the glomerular basement membrane (GBM):
+: The glomerular basement membrane (GBM) is a crucial component of the filtration barrier in the kidney. It is stained with PAS due to its glycoprotein content and facilitates charge-dependent filtration. Its primary structural component is type IV collagen, not type III collagen. This makes the statement about type III collagen incorrect. So, the answer is C.
 
-Acts as a filtration barrier, facilitating charge- and size-dependent filtration.
-Stains with PAS (Periodic Acid-Schiff) due to its glycoprotein and collagen content.
-Composed primarily of Type IV collagen and laminin, forming a non-fibrillar mesh.
-Evaluate options:
-
-A: Correct, as the GBM is a filtration barrier.
-B: Correct, as PAS staining highlights GBM components.
-C: Incorrect, as Type III collagen is not a component of the GBM.
-D: Correct, as the GBM is involved in charge-dependent filtration due to its negative charge.
-Conclusion: The correct answer is C: Type III collagen is present, as the GBM is primarily composed of Type IV collagen, not Type III.
