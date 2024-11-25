@@ -52,6 +52,7 @@ class Llama3Model(BaseModel):
     eos_token_id=terminators,
     do_sample=True,
     temperature=temperature,
+    num_return_sequences = num_return_seq,
     top_p=0.9)
 
         

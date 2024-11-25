@@ -21,7 +21,7 @@ class ChatGLMModel(BaseModel):
     max_new_tokens=256,
     eos_token_id=terminators,
     do_sample=True,
-    temperature=0.6,
+    temperature=temperature,
     top_p=0.9)
         response = outputs[0][input_ids.shape[-1]:]
         decoded_response = self.tokenizer.decode(response, skip_special_tokens=True)
