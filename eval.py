@@ -10,8 +10,8 @@ dir = configs['shortened']
 
 total_acc = []
 for file in os.listdir(dir):
-    if file[:8] == 'HaluEval': tp, fp, tn, fn = 0, 0, 0, 0
-    else: correct = 0 
+    if file[:8] == 'HaluEval': conf_mat, tp, fp, tn, fn = True, 0, 0, 0, 0
+    else: conf_mat, correct = False, 0 
 
     if file.endswith("json"): # for .json file 
         with open(os.path.join(dir, file), 'r') as f:
@@ -57,8 +57,9 @@ for file in os.listdir(dir):
 print(f"Average accuracy for medical QA datasets: {sum(total_acc)/len(total_acc)}")
 
 # Report the confusion matrix from the HaluEval dataset
-print(f"""Confusion Matrix for HaluEval:
-    yes    no 
-yes  {tp:<3} | {fn:<3}
-no   {fp:<3} | {tn:<3}""")
-print(f"Accuracy for HaluEval: {(tp+tn)/(tp+fn+fp+tn)}")
+if conf_mat:
+    print(f"""Confusion Matrix for HaluEval:
+        yes    no 
+    yes  {tp:<3} | {fn:<3}
+    no   {fp:<3} | {tn:<3}""")
+    print(f"Accuracy for HaluEval: {(tp+tn)/(tp+fn+fp+tn)}")
