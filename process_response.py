@@ -192,7 +192,7 @@ def evaluate(dataset_path, dataset_name, model_name, savedir, few_shot):
             # Save the updated dataset
             dataset_concat(processed_chunk, savedir)
             print(f">Eval>: rows {start_index + local_start} to {start_index + end_index} saved")
-            local_start = end_index + 1
+            local_start = end_index 
     except KeyboardInterrupt:
         #dataset_concat(processed_dataset, savedir)
         print(">Eval>: Keyboard Interrupt.")
