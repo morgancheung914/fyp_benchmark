@@ -2,13 +2,38 @@ import os
 import json 
 import yaml 
 import csv 
+import random
 
 with open('config.yaml', 'r') as file:
         configs = yaml.safe_load(file)
 
 dir = configs['shortened']
-
+self_con = configs['generation']['k_self_consistency']
 total_acc = []
+
+def majority_voting(i):
+    """
+    Takes a row of the dataset, unpacks the json string and do majority voting, and set the result as processed_answer
+    Args:
+        i: a row of the dataset
+    
+    """
+    k_ans = json.loads(i['processed_answer'])   
+    voting = {}
+    for i in range(len(k_ans)):
+        if k_ans[i] not in voting.keys():
+            voting[k_ans[i]] = 1 
+        else:
+            voting[k_ans[i]] += 1
+
+    max_value = max(voting.values())
+    keys_with_max_value = [key for key, value in voting.items() if value == max_value]
+
+    f_ans = random.choice(keys_with_max_value)
+
+    
+    print(f"k_paths: {k_ans}, chosen: {f_ans}")
+    return f_ans
 for file in os.listdir(dir):
     if file[:8] == 'HaluEval': conf_mat, tp, fp, tn, fn = True, 0, 0, 0, 0
     else: conf_mat, correct = False, 0 
@@ -23,28 +48,36 @@ for file in os.listdir(dir):
                 for row in csv.DictReader(f, skipinitialspace=True)]
 
     for i in data:
-        if i["processed_answer"] in ["A", "B", "C", "D"]: # valid multiple choice answers 
+        # handle majority voting in self-consistency
+        if self_con != False:
+            f_ans = majority_voting(i)
+                
+            polished_answer = f_ans
+        else:
+            polished_answer = i['processed_answer']
+
+        if polished_answer in ["A", "B", "C", "D"]: # valid multiple choice answers 
             if file[:4] == 'MMLU': # from MMLU datasets
-                if ord(i["processed_answer"]) - 65 == int(i['answer']):
+                if ord(polished_answer) - 65 == int(i['answer']):
                     correct += 1
 
             else: # from MedMCQA
-                if ord(i["processed_answer"]) - 65 == int(i['cop']): 
+                if ord(polished_answer) - 65 == int(i['cop']): 
                     correct += 1
 
-        elif i["processed_answer"].lower() in ["yes", "no", "maybe"]: 
+        elif polished_answer.lower() in ["yes", "no", "maybe"]: 
             if file[:8] == 'PubMedQA': # from PubMedQA
-                if i["processed_answer"].lower() == i['final_decision']:
+                if polished_answer.lower() == i['final_decision']:
                     correct += 1
         
             elif file[:8] == 'HaluEval': # from HaluEval
                 if i["hallucination"] == 'yes':
-                    if i["processed_answer"] == i["hallucination"]:
+                    if polished_answer == i["hallucination"]:
                         tp += 1
                     else:
                         fp += 1
                 elif i["hallucination"] == 'no':
-                    if i["processed_answer"] == i["hallucination"]:
+                    if polished_answer == i["hallucination"]:
                         tn += 1
                     else:
                         fn += 1
