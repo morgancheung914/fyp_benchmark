@@ -11,6 +11,10 @@ import string
 import time
 import argparse
 from datasets import Dataset
+import json 
+import re
+
+
 
 def remove_punctuation_and_whitespace(input_string):
     # Remove punctuation
@@ -145,12 +149,32 @@ def dataset_concat(ds, save_path):
     #Save to path
     combined.to_json(save_path, lines=False)
 
-def process_example(example, dataset_name):
-    example["processed_answer"] = query_llama3(example["response"], dataset_name)
+def process_example(example, dataset_name, self_con):
+    if self_con != False:
+        k_paths = json.loads(example["response"])
+        
+        # Attempt to parse the examples
+        for i in range(self_con):
+            # regex matching
+            pattern = r'\\\"Answer\\\": ([ABCD])$'
 
+            matcher = re.search(pattern, k_paths[i])
+            
+            if matcher:
+                print("Answer found: ", matcher.group(1))
+                example["processed_answer"] = matcher.group(1)
+
+            else:
+                print("no match, proceeding with groq.")
+                example["processed_answer"] = query_llama3(example["response"], dataset_name)
+    
+
+    else:
+        example["processed_answer"] = query_llama3(example["response"], dataset_name)
+    
     return example 
 
-def evaluate(dataset_path, dataset_name, model_name, savedir, few_shot):
+def evaluate(dataset_path, dataset_name, model_name, savedir, few_shot, self_con):
     
     dataset = load_from_disk(dataset_path)
     dataset = dataset.map(lambda example, idx: {"id": idx}, with_indices=True)
@@ -185,7 +209,7 @@ def evaluate(dataset_path, dataset_name, model_name, savedir, few_shot):
             chunk = dataset.select(range(local_start, end_index))
 
             ## process chunk          
-            processed_chunk = chunk.map(process_example, fn_kwargs={"dataset_name": dataset_name})
+            processed_chunk = chunk.map(process_example, fn_kwargs={"dataset_name": dataset_name, "self_con": self_con})
             
             #processed_dataset = dataset.map(process_example, fn_kwargs={"dataset_name": dataset_name})
             print(processed_chunk[0])
@@ -233,6 +257,7 @@ def main():
     parser.add_argument('-m', '--model', type=str, help='Model name or path')
     parser.add_argument('-n', '--dname', type=str, help="Name of the dataset")
     parser.add_argument('-s', '--savedir', type=str, help="directory to be saved")
+    parser.add_argument('-k', '--selfcon', type=int, help="number of paths parameter in self_consistency")
     parser.add_argument(
     "-f", "--fewshot",
     action="store_true",
@@ -269,12 +294,13 @@ def main():
         d_paths = rendered_config['response']['chosen_datasets']
         savedir = None if rendered_config['response']['shortened_save_path'] is None else rendered_config['response']['shortened_save_path']
         few_shot = rendered_config['generation']['few_shot']
-        
+        self_con = rendered_config['generation']['k_self_consistency']
     else:
         model_name = args.model 
         dp = args.dataset
         dn = args.dname
         savedir = args.savedir #currently only support one processing one dataset at one script instance
+        self_con = args.selfcon
         d_paths = {dn: i for i in dp}
         few_shot = args.fewshot
         print(d_paths)
@@ -284,6 +310,6 @@ def main():
         d_path = d_paths[d]
         
 
-        evaluate(d_path, d, model_name, savedir, few_shot)
+        evaluate(d_path, d, model_name, savedir, few_shot, self_con)
 
 main()
