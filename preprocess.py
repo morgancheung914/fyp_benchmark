@@ -4,15 +4,15 @@ import re
 
 def MMLU_formatter(ds, number_shot):
         # adding user content and system content 
-        ds['validation'] = ds['validation'].add_column(name="user_content", column=[
-            f"Question: {i['question']}, Choices: A: {i['choices'][0]}, B: {i['choices'][1]}, C: {i['choices'][2]}, D: {i['choices'][3]}" for i in ds['validation']])
+        ds['dev'] = ds['dev'].add_column(name="user_content", column=[
+            f"Question: {i['question']}, Choices: A: {i['choices'][0]}, B: {i['choices'][1]}, C: {i['choices'][2]}, D: {i['choices'][3]}" for i in ds['dev']])
         ds['test'] = ds['test'].add_column(name="user_content", column=[
             f"Question: {i['question']}, Choices: A: {i['choices'][0]}, B: {i['choices'][1]}, C: {i['choices'][2]}, D: {i['choices'][3]}" for i in ds['test']])
         
         sys_prompt = "Please read the question and pick the most suitable choice from A to D, simply answer A, B, C or D."
         if number_shot: # few-shot preprocessing 
             sys_prompt += " Here I will give you few examples: \n"
-            fs_ds = ds["validation"]
+            fs_ds = ds["dev"]
 
             for i in range(number_shot):
                 
@@ -32,7 +32,7 @@ def process_data(dataset, cache_dir, number_shot, CoT): # takes in dataset and c
     # {'pub_id', 'question', 'context', 'long_answer', 'final_decision'}
     if 'PubMedQA' in dataset:
         PubMedQA_ds = load_dataset("qiaojin/PubMedQA", "pqa_labeled", split='train', cache_dir=cache_dir)
-        PubMedQA_ds = PubMedQA_ds.train_test_split(test_size=0.5) # train, test 
+        PubMedQA_ds = PubMedQA_ds.train_test_split(test_size=0.5, shuffle=False) # train, test 
         
         # adding user content and system content 
         PubMedQA_ds['train'] = PubMedQA_ds['train'].add_column(name="user_content", column=[
