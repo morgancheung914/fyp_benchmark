@@ -3,6 +3,10 @@ from datasets import load_from_disk, Dataset
 import os
 import shutil
 import tempfile
+import yaml 
+import json
+with open('../config.yaml', 'r') as file:
+    configs = yaml.safe_load(file)
 
 def load_dataset(load_dir, save_dir):
     # Always load the original dataset from load_dir
@@ -64,7 +68,16 @@ def get_row(dataset, index):
     row = dataset[int(index)]
     index_value = row.get('index', 'N/A')
     question = row['question']
-    response = row['response']
+    if configs['generation']['k_self_consistency'] != False:
+        # unpack json and insert spaces for self consistency
+        k_paths = json.loads(row['response'])
+        response = ""
+        for k in range(configs['generation']['k_self_consistency']):
+            
+            response += f"Path {k}: \n\n {k_paths[k]} \n\n\n"
+            response += "==================================="
+    else: 
+        response = row['response']
     return f"### Index: {index_value}\n\n### Question:\n{question}\n\n### Response:\n{response}"
 
 def update(processed_answer, index, processed_answers):
