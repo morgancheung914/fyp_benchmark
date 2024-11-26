@@ -33,7 +33,7 @@ class InternistModel(BaseModel):
         
         model_inputs = encoded.to(self.device)
 
-        generated_ids = self.model.generate(model_inputs, max_new_tokens=max_length, do_sample=True)
+        generated_ids = self.model.generate(model_inputs, max_new_tokens=max_length, do_sample=True, num_return_sequences = num_return_seq, top_p = top_p)
 
        
         generated_ids = generated_ids[:,encoded.shape[-1]:]

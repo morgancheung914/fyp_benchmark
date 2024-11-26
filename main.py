@@ -8,7 +8,7 @@ from transformers import DefaultDataCollator
 from torch.utils.data import DataLoader
 import yaml
 from tqdm import tqdm 
-
+import json
 
 with open('config.yaml', 'r') as file:
     configs = yaml.safe_load(file)
@@ -28,6 +28,11 @@ model.load_model()
 bench_datasets = set(configs['dataset']['dataset_names'])
 number_shot = configs['generation']['few_shot']
 CoT = configs['generation']['CoT']
+self_cons = configs['generation']['k_self_consistency']
+
+#Enforce CoT if self_cons is set to true
+if self_cons != False:
+    CoT = True
 
 # load datasets, the returned dict stores the processed datasetDict w.r.t each dataset 
 datasets_dict = process_data(bench_datasets, 'dataset/cache', number_shot, CoT)
@@ -66,24 +71,39 @@ for dataset in list(datasets_dict.keys()):
                 
                 {"role": "user", "content": i['user_content']}] for i in selected_ds]
 
-        dataloader = DataLoader(ds_test, batch_size = 3, shuffle=False, collate_fn = lambda x: x)
+        dataloader = DataLoader(ds_test, batch_size = 1, shuffle=False, collate_fn = lambda x: x)
         responses = []
         print(f">Bench>: Starting inference on {dataset}.")
 
         for batch in tqdm(dataloader):
             #print(batch)
-            batch_responses = (model.batch_predict(batch, max_length = 300, num_return_seq = 1, temperature = 1, top_p = 0.9))
+            num_seq = 1 if self_cons == False else self_cons #set number of sequences to generate
+            print(num_seq)
+            batch_responses = (model.batch_predict(batch, max_length = 300, num_return_seq = num_seq, temperature = 1, top_p = 0.9))
             #print(batch_responses)
-            print(batch_responses)
+            print(f"batch: {batch_responses}\n")
+            print(f"len: {len(batch_responses)}")
 
-            responses.extend(batch_responses) 
+            if self_cons != False: # if self_consistency is in effect, divide the list of results with the # of self-cons generations
+                for i in range(1):
+                    curr = batch_responses[i*self_cons: i*self_cons + self_cons]
+                    #pack as json string
+                    curr_json =json.dumps(curr)
+                    responses.append(curr_json)
+                    print(responses)
+
+            else:
+                #self_consistency is not in effect
+                responses.extend(batch_responses) 
         selected_ds = selected_ds.add_column(name = "response", column = responses)
 
+        if self_cons != False: #self_consistency responses
+            selected_ds.save_to_disk(f'responses/{configs["model"]}/SC/{dataset}')
         if CoT: # CoT responses
-            selected_ds.save_to_disk(f'responses/{configs["model"]}/CoT/{dataset}_1000')
+            selected_ds.save_to_disk(f'responses/{configs["model"]}/CoT/{dataset}')
 
         else: # 0-shot, 1-shot, 3-shot reponses
-            selected_ds.save_to_disk(f'responses/{configs["model"]}/{number_shot}-shot/{dataset}_1000')
+            selected_ds.save_to_disk(f'responses/{configs["model"]}/{number_shot}-shot/{dataset}')
 
 
         print(f">Bench>: Inferencing on {dataset} finished.")

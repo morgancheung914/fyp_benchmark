@@ -8,11 +8,12 @@ dataset:
     - MedMCQA
     #- HaluEval
 
-model: ChatGLM
+model: Med42
 
 generation:
   few_shot: 3
   CoT: True
+  k_self_consistency: 5 #set as False of do not want self-consistency
 response:
   
   chosen_datasets:
