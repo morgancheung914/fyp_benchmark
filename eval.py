@@ -56,9 +56,9 @@ for file in os.listdir(dir):
 # Report the average accuracy for medical QA datasets 
 print(f"Average accuracy for medical QA datasets: {sum(total_acc)/len(total_acc)}")
 
-# Report the confusion matrix from the HaluEval dataset
-print(f"""Confusion Matrix for HaluEval:
-    yes    no 
-yes  {tp:<3} | {fn:<3}
-no   {fp:<3} | {tn:<3}""")
-print(f"Accuracy for HaluEval: {(tp+tn)/(tp+fn+fp+tn)}")
+# # Report the confusion matrix from the HaluEval dataset
+# print(f"""Confusion Matrix for HaluEval:
+#     yes    no 
+# yes  {tp:<3} | {fn:<3}
+# no   {fp:<3} | {tn:<3}""")
+# print(f"Accuracy for HaluEval: {(tp+tn)/(tp+fn+fp+tn)}")

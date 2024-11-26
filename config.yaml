@@ -8,7 +8,7 @@ dataset:
     - MedMCQA
     #- HaluEval
 
-model: Internist
+model: ChatGLM
 
 generation:
   few_shot: 3
@@ -24,5 +24,7 @@ response:
    #MMLU_clinical: "responses/{{ model }}/MMLU_clinical" 265
    #PubMedQA: "responses/{{ model }}/PubMedQA"
    #MedMCQA: "responses/{{ model }}/MedMCQA"
+   MedMCQA: "/Users/morgan/Documents/Study/AIST FYP/fyp_benchmark/responses/CoT/MedMCQA_1000_GLM"
 
-shortened: shortened/Meditron
+  shortened_save_path: None
+shortened: /Users/morgan/Documents/Study/AIST FYP/fyp_benchmark/shortened/ChatGLM/cot
