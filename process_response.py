@@ -152,29 +152,32 @@ def dataset_concat(ds, save_path):
 def process_example(example, dataset_name, self_con):
     if self_con != False:
         k_paths = json.loads(example["response"])
-        
+        k_ans = ['' for i in range(self_con)]
         # Attempt to parse the examples
         for i in range(self_con):
             # regex matching
-            pattern = r'\\\"Answer\\\": ([ABCD])$'
+            pattern = r'\"Answer\":\s*([ABCD])'
 
             matcher = re.search(pattern, k_paths[i])
-            
+
             if matcher:
                 print("Answer found: ", matcher.group(1))
-                example["processed_answer"] = matcher.group(1)
+                k_ans[i] = matcher.group(1)
 
             else:
                 print("no match, proceeding with groq.")
-                example["processed_answer"] = query_llama3(example["response"], dataset_name)
+                k_ans[i] = query_llama3(example["response"], dataset_name)
     
-
+        #aggregate the answer
+        example["processed_answer"] = json.dumps(k_ans)
+        
+    
     else:
         example["processed_answer"] = query_llama3(example["response"], dataset_name)
     
     return example 
 
-def evaluate(dataset_path, dataset_name, model_name, savedir, few_shot, self_con):
+def evaluate(dataset_path, dataset_name, model_name, savedir, few_shot, self_con, cot):
     
     dataset = load_from_disk(dataset_path)
     dataset = dataset.map(lambda example, idx: {"id": idx}, with_indices=True)
@@ -184,8 +187,21 @@ def evaluate(dataset_path, dataset_name, model_name, savedir, few_shot, self_con
         dataset = dataset.select(range(1000))
 
     # Check previous progress 
-    if (savedir == None):
-        savedir = f"shortened/{model_name}/fsp/{dataset_name}_{few_shot}shot" if few_shot else f"shortened/{model_name}/{dataset_name}"
+
+
+    #print(savedir == "None")
+    if (savedir is None):
+   
+        if self_con != False:
+            savedir = f"shortened/{model_name}/SC/{dataset_name}_SC"  
+        
+        elif cot:
+            savedir = f"shortened/{model_name}/CoT/{dataset_name}_SC"
+        elif few_shot:
+            savedir = f"shortened/{model_name}/fsp/{dataset_name}_{few_shot}shot"  
+        
+        else: f"shortened/{model_name}/{dataset_name}"
+
     print(f"savedir at {savedir}")
     progress_id, progress_dataset = load_if_exists(savedir)
     if progress_id: 
@@ -257,7 +273,8 @@ def main():
     parser.add_argument('-m', '--model', type=str, help='Model name or path')
     parser.add_argument('-n', '--dname', type=str, help="Name of the dataset")
     parser.add_argument('-s', '--savedir', type=str, help="directory to be saved")
-    parser.add_argument('-k', '--selfcon', type=int, help="number of paths parameter in self_consistency")
+    parser.add_argument('-t', '--cot', type=int, help="enable Chain of Thoughts.")
+
     parser.add_argument(
     "-f", "--fewshot",
     action="store_true",
@@ -293,23 +310,27 @@ def main():
 
         d_paths = rendered_config['response']['chosen_datasets']
         savedir = None if rendered_config['response']['shortened_save_path'] is None else rendered_config['response']['shortened_save_path']
+
         few_shot = rendered_config['generation']['few_shot']
         self_con = rendered_config['generation']['k_self_consistency']
+        cot = rendered_config['generation']["CoT"]
     else:
         model_name = args.model 
         dp = args.dataset
         dn = args.dname
         savedir = args.savedir #currently only support one processing one dataset at one script instance
         self_con = args.selfcon
+        cot = args.cot
         d_paths = {dn: i for i in dp}
         few_shot = args.fewshot
-        print(d_paths)
+        
+
     for d in list(d_paths.keys()):
         #get dataset name and path
         print(f">Eval>: Processing answers by {model_name} for {d}")
         d_path = d_paths[d]
         
 
-        evaluate(d_path, d, model_name, savedir, few_shot, self_con)
+        evaluate(d_path, d, model_name, savedir, few_shot, self_con, cot)
 
 main()
