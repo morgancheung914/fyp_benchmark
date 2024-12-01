@@ -8,24 +8,28 @@ dataset:
     - MedMCQA
     #- HaluEval
 
-model: Llama3
+model: ChatGLM
 
 generation:
-  few_shot: 3
-  CoT: True
-  k_self_consistency: 5 #set as False of do not want self-consistency
+  few_shot: 0 # number of shots 
+  CoT: True # True/ False 
+  k_self_consistency: 0 # number of self-consistency
+  top_p: 0.9
+  temperature: 1
+  batch_size: 3
+
 response:
   
   chosen_datasets:
-  # Uncomment the datasets you would lPubMedQAike to evaluate 
+  # Uncomment the datasets you would like to shorten
 
-   #MMLU_biology: "responses/{{ model }}/MMLU_biology" 144
-   #MMLU_anatomy: "responses/{{ model }}/MMLU_anatomy" 135
-   #MMLU_medicine: "responses/{{ model }}/3-shot/MMLU_medicine" 173
-   #MMLU_clinical: "responses/{{ model }}/MMLU_clinical" 265
-   #PubMedQA: "responses/{{ model }}/PubMedQA"
-   #MedMCQA: "responses/{{ model }}/MedMCQA"
-   #MedMCQA: "/Users/morgan/Documents/Study/AIST FYP/fyp_benchmark/responses/CoT/MedMCQA_1000_GLM"
-   MedMCQA: /Users/morgan/Documents/Study/AIST FYP/fyp_benchmark/responses/SC/Llama3/MedMCQA
+   MMLU_biology: "responses/{{ model }}/{{ fs }}-shot/MMLU_biology" 
+   #MMLU_anatomy: "responses/{{ model }}/{{ fs }}-shot/MMLU_anatomy" 
+   #MMLU_medicine: "responses/{{ model }}/{{ fs }}-shot/MMLU_medicine" 
+   #MMLU_clinical: "responses/{{ model }}/{{ fs }}-shot/MMLU_clinical"
+   #PubMedQA: "responses/{{ model }}/{{ fs }}-shot/PubMedQA"
+   #MedMCQA: "responses/{{ model }}/{{ fs }}-shot/MedMCQA"
+   #HaluEval: "responses/{{ model }}/{{ fs }}-shot/HaluEval"
+
   shortened_save_path: null
-shortened: /Users/morgan/Documents/Study/AIST FYP/fyp_benchmark/shortened/ChatGLM/cot
+shortened: shortened/Med42/0-shot

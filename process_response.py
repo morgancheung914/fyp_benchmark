@@ -40,6 +40,8 @@ def query_llama3(text, dataset_name):
         choices = "A, B, C or D"
     if dataset_name in ["PubMedQA"]:
         choices = "Yes No or Maybe"
+    if dataset_name in ["HaluEval"]:
+        choices = "Yes or No"
     
     examples = """ String 1:  \"a
 Reasoning:The best advice to a 29-year-old pregnant woman with a previous child with Down Syndrome is to have a test done as her age is below 35 years (Choice A). This is\"
@@ -182,25 +184,12 @@ def evaluate(dataset_path, dataset_name, model_name, savedir, few_shot, self_con
     dataset = load_from_disk(dataset_path)
     dataset = dataset.map(lambda example, idx: {"id": idx}, with_indices=True)
     if dataset_name == "MedMCQA":
-       
-        # only use the first 1000 rows
         dataset = dataset.select(range(1000))
 
     # Check previous progress 
 
-
-    #print(savedir == "None")
-    if (savedir is None):
-   
-        if self_con != False:
-            savedir = f"shortened/{model_name}/SC/{dataset_name}_SC"  
-        
-        elif cot:
-            savedir = f"shortened/{model_name}/CoT/{dataset_name}_SC"
-        elif few_shot:
-            savedir = f"shortened/{model_name}/fsp/{dataset_name}_{few_shot}shot"  
-        
-        else: f"shortened/{model_name}/{dataset_name}"
+    if (savedir == None):
+        savedir = f"shortened/{dataset_path[10:]}"
 
     print(f"savedir at {savedir}")
     progress_id, progress_dataset = load_if_exists(savedir)
@@ -273,13 +262,10 @@ def main():
     parser.add_argument('-m', '--model', type=str, help='Model name or path')
     parser.add_argument('-n', '--dname', type=str, help="Name of the dataset")
     parser.add_argument('-s', '--savedir', type=str, help="directory to be saved")
-    parser.add_argument('-t', '--cot', type=int, help="enable Chain of Thoughts.")
+    parser.add_argument('-t', '--cot', type=int, default=0, help="enable Chain of Thoughts")
+    parser.add_argument("-f", "--fewshot", type=int, default=0, help="Enable few-shot mode")
+    parser.add_argument("-sc", "--k_self_con", type=int, default=0, help="number of times in self-consistency")
 
-    parser.add_argument(
-    "-f", "--fewshot",
-    action="store_true",
-    help="Enable few-shot mode. If specified, it will be True; otherwise, False."
-)
     args = parser.parse_args()
 
     if args.config:
@@ -318,19 +304,18 @@ def main():
         model_name = args.model 
         dp = args.dataset
         dn = args.dname
-        savedir = args.savedir #currently only support one processing one dataset at one script instance
-        self_con = args.selfcon
+        savedir = args.savedir # currently only support one processing one dataset at one script instance
+        self_con = args.k_self_con
         cot = args.cot
         d_paths = {dn: i for i in dp}
         few_shot = args.fewshot
         
 
     for d in list(d_paths.keys()):
-        #get dataset name and path
+        # get dataset name and path
         print(f">Eval>: Processing answers by {model_name} for {d}")
         d_path = d_paths[d]
-        
-
+    
         evaluate(d_path, d, model_name, savedir, few_shot, self_con, cot)
 
 main()
