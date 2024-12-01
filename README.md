@@ -1,127 +1,65 @@
-# Introduction
+## Introduction 
 
-This repository is intended for the benchmarking of FYP project.
+This project aims to provide a generalized framwork for evaluating the performance existing LLMs on several medical QA tasks and hallucination detection.
 
-## Setup 
+The framework now supports:
+- Models: ChatGLM, Internist, Llama3, Med42, Meditron
+- Datasets: MMLU_biology, MMLU_anatomy, MMLU_medicine, MMLU_clinical, PubMedQA, MedMCQA, HaluEval
 
-1. Build openssl from source
+We would love to include more models and datasets in the future. 
+
+## Setup
+Install all the required dependencies before getting start.
 ```
-cd 
-mkdir ssl 
-mkdir sslsrc 
-cd sslsrc
-
-wget www.openssl.org/source/openssl-1.1.1.tar.gz
-tar xf openssl-1.1.1.tar.gz
-cd openssl-1.1.1
-./config --prefix=$HOME/openssl --openssldir=$HOME/openssl 
-make 
-make install
+pip install -r requirements.txt
 ```
 
-2. Add these to .bashrc by  vim ~/.bashrc
-```
-export PATH="$HOME/openssl/bin:$PATH"
-export LDFLAGS="-L$HOME/openssl/lib"
-export CPPFLAGS="-I$HOME/openssl/include"
-export PKG_CONFIG_PATH="$HOME/openssl/lib/pkgconfig"
-export LD_LIBRARY_PATH="$HOME/openssl/lib:$LD_LIBRARY_PATH"
-```
+## Basic Usage
+The framework is divided into three steps. 
 
-3. Reload Shell 
-```
-source ~/.bashrc
-```
+### Inference 
+First get the raw model responses. 
 
-
-4. Install pyenv 
-``` 
-curl https://pyenv.run | bash
-
+Please try to run the following script in an environemnt with CUDA-compatible GPU for faster inference. 
 ```
+python3 inference.py
+```
+Following parameters are provided
+- `model` - select one model for generation each time 
+- `dataset` - inference on more than one datasets is supported 
+- `few_shot` - number of shots prompted into the model
+- `CoT` - true if you would like to perform Chain of Thoughts
+- `k_self_consistency` - number of Self Consistency prompted into the model
+- `top_pv` - top_p of the model
+- `temperature` - temperature of the model
+- `batch_size` - batch size of the evaluating sets
 
-5. Add to  ~/.bashrc
-``` 
-export PYENV_ROOT="$HOME/.pyenv"
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
-```
+Please refer to config.yaml for modifications 
 
-6. Reload Shell 
-```
-source ~/.bashrc
-```
-
-7. Installation of python 3.11
-```
-pyenv install 3.11
-pyenv global 3.11.10
-```
-
-8. Create Virtual environment
+### Response process
+Then, the raw responses would be shortened by calling llama-3.1-70b-versatile using Groq API to the designated answer space for easier evaluation.
 
 ```
-python3 -m venv benchenv
-source ~/benchenv/bin/activate
+export GROQ_API_KEY=your_key_here
+python3 process_response.py -c config.yaml
 ```
+Remeber to specify the input path by `chosen_dataset` in config.yaml, you may also want to specify the output path by `shortened_save_path`
 
-
-9. Install depedencies
+or for automatic API key deployment
 ```
-# install pytorch
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-pip3 install -r requirements.txt
+bash ./autoshort_3.sh
 ```
-
-10. Running
-`python src/llama3.py`
-
-
-
-## Install new dependencies
-
-If you need to install new dependencies, the preferred way is to use `python3 -m pip install`
-
-## slurm configs 
-config: `export SLURM_CONF=/opt1/slurm/gpu-slurm.conf`
-
-
-`srun -p gpu_2h -c 4 --gres=gpu:2 -C "rtx3090" --pty /bin/bash`
-or 
-`srun -p gpu_2h -c 4 --gres=gpu:2 -C "rtx2080" --pty /bin/bash`
-or when the queue is long 
-`srun -p gpu_2h -c 4 --gres=gpu:8 --pty /bin/bash`
-
-## Using tmux to spawn multiple shells within the same job
-
-First run `tmux`.
-
-To create new pane run `Ctrl-b %`.
-
-To navigate between panes use `Ctrl-b o` or `Ctrl-b <arrows>`
-
-To detach from session use `Ctrl-b d`
-
-To kill session use `Ctrl-b :` to open command mode and write `kill-session`
-
-
-## How to use the shorten script 
-
-write the following into ~/.bashrc
-
-`export GROQ_API_KEY=your_key_here`
-
-Then use 
-`python process_response.py -c config.yaml`, specifying the response paths to be shortened in response.chosen_datsets and the few_shot parameter as True or False.
-
-
-The script will create shortened/ and include the shortened dataset.
-
-## Cycle through multiple Groq API_keys
-
-A shell script is created for the ease of replacing API_keys once they run out of quota, simply run
-`./autoshort_3.sh`
 In the script, replace these few things:
-1. groq.txt -> a txt file path that contains the API keys
-2. log_file= -> a log file path 
-3. config_4.yaml -> a yaml file you wish to use on process_response.py
+1. groq.txt -> a txt file path that contains your own API keys
+2. log_file = -> a log file path 
+3. config.yaml -> a yaml file you wish to use on process_response.py
+
+### Evaluation 
+Finally, get the accuracy for the processed responses
+```
+python3 eval.py 
+```
+Specify the directory of processed responses by `eval` in config.yaml
+e.g. `shortened/llama3/0-shot/` for calculating all 0-shot accuracies of the datasets from llama3
+
+Check out https://drive.google.com/drive/folders/1H37kkPxt082KgpfQraPAjrR5PbklFaLQ?usp=drive_link for the raw responses and processed responses generated.
