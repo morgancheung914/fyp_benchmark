@@ -11,7 +11,7 @@ The framework now supports:
 We would love to include more models and datasets in the future. 
 
 ## Setup
-Install all the required dependencies before getting start.
+Install all the required dependencies before getting started.
 ```
 pip install -r requirements.txt
 ```
@@ -32,7 +32,7 @@ Following parameters are provided
 - `few_shot` - number of shots prompted into the model
 - `CoT` - true if you would like to perform Chain of Thoughts
 - `k_self_consistency` - number of Self Consistency prompted into the model
-- `top_pv` - top_p of the model
+- `top_p` - top_p of the model
 - `temperature` - temperature of the model
 - `batch_size` - batch size of the evaluating sets
 
@@ -49,8 +49,9 @@ Remeber to specify the dataset name and corresponding path by `chosen_dataset` a
 
 or for automatic API key deployment
 ```
-bash ./autoshort_3.sh
+./autoshort_3.sh
 ```
+
 In the shell script, replace these few things:
 1. groq.txt -> a txt file path that contains your own API keys
 2. log_file = -> a log file path 
