@@ -175,7 +175,15 @@ def process_example(example, dataset_name, self_con):
         
     
     else:
-        example["processed_answer"] = query_llama3(example["response"], dataset_name)
+        pattern = r'\"Answer\":\s*([ABCD])'
+        matcher = re.search(pattern, example['response'])
+
+        if matcher:
+            print("Answer found: ", matcher.group(1))
+            example['processed_answer'] = matcher.group(1)
+        else:
+            print("no match, proceeding with groq.")
+            example["processed_answer"] = query_llama3(example["response"], dataset_name)
     
     return example 
 
@@ -264,9 +272,14 @@ def main():
 
     args = parser.parse_args()
 
+    model_name = None
+    prompt = None
+    self_con = False
+    
     if args.config:
         with open(args.config, 'r') as file:
             configs = yaml.safe_load(file)
+           
 
         if configs['response']['from_inference']: # decide if to use the model and parameters in inference
             model_name = configs['model']
