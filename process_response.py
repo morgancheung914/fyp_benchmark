@@ -152,7 +152,7 @@ def dataset_concat(ds, save_path):
     combined.to_json(save_path, lines=False)
 
 def process_example(example, dataset_name, self_con):
-    if self_con != False:
+    if self_con:
         k_paths = json.loads(example["response"])
         k_ans = ['' for i in range(self_con)]
         # Attempt to parse the examples
@@ -179,7 +179,7 @@ def process_example(example, dataset_name, self_con):
     
     return example 
 
-def evaluate(dataset_path, dataset_name, model_name, savedir, few_shot, self_con, cot):
+def evaluate(dataset_path, dataset_name, savedir, self_con):
     
     dataset = load_from_disk(dataset_path)
     dataset = dataset.map(lambda example, idx: {"id": idx}, with_indices=True)
@@ -188,10 +188,10 @@ def evaluate(dataset_path, dataset_name, model_name, savedir, few_shot, self_con
 
     # Check previous progress 
 
-    if (savedir == None):
+    if (savedir == None): # makeup the save directory 
         savedir = f"shortened/{dataset_path[10:]}"
 
-    print(f"savedir at {savedir}")
+    print(f">Eval>: Saving directory at {savedir}")
     progress_id, progress_dataset = load_if_exists(savedir)
     if progress_id: 
         start_index = progress_id + 1
@@ -245,25 +245,21 @@ def evaluate(dataset_path, dataset_name, model_name, savedir, few_shot, self_con
             
     #         processed_dataset.to_json(f"shortened/{model_name}/{dataset_name}", lines=False)
 
-    print(f">Eval>: {dataset_name} answer processing finished and saved.")
+    print(f">Eval>: {dataset_name} answer processing finished and saved at {savedir}.")
 
     return
 
 
 def main():
 
-    parser = argparse.ArgumentParser(description="Argument parser for dataset and model")
+    parser = argparse.ArgumentParser(description="Argument parser for process_response.py")
     
     # Optional -c argument to load from YAML config
     parser.add_argument('-c', '--config', type=str, help='Path to the YAML config file')
 
     # Arguments for dataset and model if -c is not provided
-    parser.add_argument('-d', '--dataset', nargs='+', type=str, help='List of dataset paths')
-    parser.add_argument('-m', '--model', type=str, help='Model name or path')
-    parser.add_argument('-n', '--dname', type=str, help="Name of the dataset")
-    parser.add_argument('-s', '--savedir', type=str, help="directory to be saved")
-    parser.add_argument('-t', '--cot', type=int, default=0, help="enable Chain of Thoughts")
-    parser.add_argument("-f", "--fewshot", type=int, default=0, help="Enable few-shot mode")
+    parser.add_argument('-d', '--dataset', nargs='+', type=str, help='Dataset paths')
+    parser.add_argument('-s', '--savedir', type=str, default=None, help="directory to be saved")
     parser.add_argument("-sc", "--k_self_con", type=int, default=0, help="number of times in self-consistency")
 
     args = parser.parse_args()
@@ -272,50 +268,51 @@ def main():
         with open(args.config, 'r') as file:
             configs = yaml.safe_load(file)
 
-        model_name = configs['model']
-        fs = configs['generation']['few_shot']
+        if configs['response']['from_inference']: # decide if to use the model and parameters in inference
+            model_name = configs['model']
+            fs = configs['generation']['few_shot']
+            cot = configs['generation']['CoT']
+            self_con = configs['generation']['k_self_consistency']
+
+            if self_con:
+                prompt = 'SC'
+            elif cot:
+                prompt = 'CoT'
+            else:
+                prompt = f'{fs}-shot'
+
+        savedir = None if configs['response']['shortened_save_path'] is None else configs['response']['shortened_save_path']
 
         # Create a Jinja2 template from the content
-        #template = Template(yaml.dump({'response': configs['response'], }))
-
         template_content = yaml.dump({
-    'dataset': configs['dataset'],
-    'model': configs['model'],
-    'generation': configs['generation'],
-    'response': configs['response'],
-    'shortened': configs['shortened']
-})
+            'dataset': configs['dataset'],
+            'model': configs['model'],
+            'generation': configs['generation'],
+            'response': configs['response'],
+            'eval': configs['eval']
+        })
         template = Template(template_content)
 
         # Render the template with variables
-        rendered_content = template.render(model = model_name, fs = fs)
+        rendered_content = template.render(model = model_name, prompt = prompt)
 
         # Load the rendered YAML
         rendered_config = yaml.safe_load(rendered_content)
-
-
+        
         d_paths = rendered_config['response']['chosen_datasets']
-        savedir = None if rendered_config['response']['shortened_save_path'] is None else rendered_config['response']['shortened_save_path']
-
-        few_shot = rendered_config['generation']['few_shot']
-        self_con = rendered_config['generation']['k_self_consistency']
-        cot = rendered_config['generation']["CoT"]
-    else:
-        model_name = args.model 
+    else: 
         dp = args.dataset
-        dn = args.dname
         savedir = args.savedir # currently only support one processing one dataset at one script instance
         self_con = args.k_self_con
-        cot = args.cot
-        d_paths = {dn: i for i in dp}
-        few_shot = args.fewshot
+
+        d_paths = {p[len(p)-p[::-1].index('/'):]: p for p in dp}
         
 
     for d in list(d_paths.keys()):
         # get dataset name and path
-        print(f">Eval>: Processing answers by {model_name} for {d}")
         d_path = d_paths[d]
-    
-        evaluate(d_path, d, model_name, savedir, few_shot, self_con, cot)
+        print(f">Eval>: Processing answers by {d_path[10:10+d_path[10:].index('/')]} for {d}")
+        
+        evaluate(d_path, d, savedir, self_con)
 
 main()

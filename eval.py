@@ -2,11 +2,22 @@ import os
 import json 
 import yaml 
 import csv 
+import argparse
 
-with open('config.yaml', 'r') as file:
-        configs = yaml.safe_load(file)
+parser = argparse.ArgumentParser(description="Argument parser for eval.py")
+parser.add_argument('-c', '--config', type=str, default=None, help='Path to the YAML config file')
 
-dir = configs['eval']
+# Arguments for response path if -c is not provided
+parser.add_argument('-e', '--eval_path', type=str, help='Path to the folder for model responses')
+
+args = parser.parse_args()
+if args.config:
+    with open('config.yaml', 'r') as file:
+            configs = yaml.safe_load(file)
+
+    dir = configs['eval']
+else:
+    dir = args.eval_path
 
 conf_mat = False 
 total_acc = []
