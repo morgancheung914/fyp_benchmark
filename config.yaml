@@ -1,3 +1,4 @@
+# inference.py
 dataset:
   dataset_names: 
     #- MMLU_biology
@@ -12,24 +13,26 @@ model: ChatGLM
 
 generation:
   few_shot: 0 # number of shots 
-  CoT: True # True/ False 
+  CoT: False # True/ False 
   k_self_consistency: 0 # number of self-consistency
   top_p: 0.9
   temperature: 1
   batch_size: 3
 
+# process_response.py
 response:
-  
-  chosen_datasets:
-  # Uncomment the datasets you would like to shorten
+  from_inference: True # set to true to use the responses by the same model with the same generation parameters in inference
 
-   MMLU_biology: "responses/{{ model }}/{{ fs }}-shot/MMLU_biology" 
-   #MMLU_anatomy: "responses/{{ model }}/{{ fs }}-shot/MMLU_anatomy" 
-   #MMLU_medicine: "responses/{{ model }}/{{ fs }}-shot/MMLU_medicine" 
-   #MMLU_clinical: "responses/{{ model }}/{{ fs }}-shot/MMLU_clinical"
-   #PubMedQA: "responses/{{ model }}/{{ fs }}-shot/PubMedQA"
-   #MedMCQA: "responses/{{ model }}/{{ fs }}-shot/MedMCQA"
-   #HaluEval: "responses/{{ model }}/{{ fs }}-shot/HaluEval"
+  chosen_datasets: # Uncomment the datasets you would like to shorten and specify its corresponding path 
+   MMLU_biology: "responses/{{ model }}/{{ prompt }}/MMLU_biology" 
+   #MMLU_anatomy: "responses/{{ model }}/MMLU_anatomy" 
+   #MMLU_medicine: "responses/{{ model }}/MMLU_medicine" 
+   #MMLU_clinical: "responses/{{ model }}/MMLU_clinical"
+   #PubMedQA: "responses/{{ model }}/PubMedQA"
+   #MedMCQA: "responses/{{ model }}/MedMCQA"
+   #HaluEval: "responses/{{ model }}/HaluEval"
 
   shortened_save_path: null
-shortened: shortened/Med42/0-shot
+
+# eval.py
+eval: shortened/Med42/0-shot
