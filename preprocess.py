@@ -1,6 +1,4 @@
 from datasets import load_dataset
-import argparse 
-import re 
 
 def MMLU_formatter(ds, number_shot):
         # adding user content and system content 
@@ -19,10 +17,9 @@ def MMLU_formatter(ds, number_shot):
                 sys_prompt += f"Question {i+1}: {fs_ds[i]['user_content']}\nAnswer {i+1}: {chr(fs_ds[i]['answer'] + 65)}\n"
             
             sys_prompt += "Now please answer the user's question."
-        print(sys_prompt)
+
         ds['test'] = ds['test'].add_column(name="sys_content", column=[sys_prompt] * len(ds['test']))
     
-         
         return ds 
 
 
