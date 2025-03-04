@@ -7,7 +7,14 @@ import yaml
 import json
 import shutil
 import tempfile
+import json 
 
+
+# load the attributes of datasets
+with open('datasets.json', 'r') as f:
+    datasets_info = json.load(f)
+
+# currently supported models, datasets, prompting techniques 
 models = ['ChatGLM', 'Internist', 'Llama3', 'Med42', 'Meditron']
 datasets = ['MMLU_biology', 'MMLU_anatomy', 'MMLU_medicine', 'MMLU_clinical', 'PubMedQA', 'MedMCQA', 'HaluEval']
 prompting_techniques = ['Few-shots prompting', 'Chain of Thoughts', 'Self Consistency']
@@ -75,11 +82,22 @@ custom_css = """
 with open('config.yaml', 'r') as file:
     configs = yaml.safe_load(file)
 
+def get_ds_info(dname):
+    global processing_dataset, question_col, answer_col, choice_col, choices 
+    ds_info = datasets_info[dname]
+    question_col = ds_info['question_col']
+    answer_col = ds_info['answer_col']
+    choice_col = ds_info['choice_col']
+    choices = ds_info['choices']
+
 def load_dataset(load_dir, save_dir):
     # Always load the original dataset from load_dir
     processing_dataset = load_from_disk(load_dir)
+    dname = load_dir[load_dir.rindex('/')+1:]
+    print(f"Loaded original dataset: {dname} from {load_dir}")
 
-    print(f"Loaded original dataset from {load_dir}")
+    # get the name of the columns of datasets 
+    get_ds_info(dname)
 
     # Add 'index' column if it doesn't exist
     if 'index' not in processing_dataset.column_names:
@@ -108,7 +126,7 @@ def load_dataset(load_dir, save_dir):
     else:
         start_idx = 0
 
-    return processing_dataset, processed_answers, start_idx 
+    return processed_answers, start_idx 
 
 def find_unprocessed_index(processing_dataset, processed_answers, start=0, prev=False):
     if prev: # Find the index of the previous entry wiuhtout a 'processed_answer'
@@ -127,11 +145,16 @@ def get_row(processing_dataset, index):
         return "You have reached the end of the dataset."
     # Retrieve index, question, and response for the current index
     row = processing_dataset[int(index)]
-    question = row['question']
-    options = [f"{chr(65 + i)}. {option}" for i, option in enumerate([row['opa'], row['opb'], row['opc'], row['opd']])]
+
+    question = row[question_col]
+    if choice_col is not None:
+        if len(choice_col) == 1:
+            options = [f"{chr(65 + i)}. {option}" for i, option in enumerate(row[choice_col[0]])]
+        else:
+            options = [f"{chr(65 + i)}. {row[option]}" for i, option in enumerate(choice_col)]
+
     if configs['generation']['k_self_consistency'] != False:
-        # unpack json and insert spaces for self consistency
-        k_paths = json.loads(row['response'])
+        k_paths = json.loads(row['response']) # unpack json and insert spaces for self consistency
         response = ""
         for k in range(configs['generation']['k_self_consistency']):
             response += f"Path {k}: \n\n {k_paths[k]} \n\n\n"
@@ -140,7 +163,7 @@ def get_row(processing_dataset, index):
         response = row['response']
     return f"### \#{index+1}.\n\n### Question:\n{question}\n\n{options[0]}\n\n{options[1]}\n\n{options[2]}\n\n{options[3]}\n\n### Response:\n{response}"
 
-def update(processed_answer, index, processed_answers, button):
+def update_human_labelling(processed_answer, index, processed_answers, button):
     index = int(index)
     # Save the processed_answer to the dictionary
     if processed_answer != '': processed_answers[index] = processed_answer
@@ -154,7 +177,7 @@ def update(processed_answer, index, processed_answers, button):
         else:
             # Display the previous question and response
             display_text = get_row(processing_dataset, prev_index)
-            return display_text, gr.update(value=""), prev_index, processed_answers
+            return display_text, gr.update(visible=True, value=""), prev_index, processed_answers
         
     # Previous: Find the previous index
     if button == "Previous":
@@ -165,7 +188,7 @@ def update(processed_answer, index, processed_answers, button):
             return display_text, gr.update(visible=False), index, processed_answers
         else:
             display_text = get_row(processing_dataset, prev_index)
-            return display_text, gr.update(value=""), prev_index, processed_answers
+            return display_text, gr.update(visible=True, value=""), prev_index, processed_answers
 
     # Next: Find the next index
     if button == "Next":
@@ -177,7 +200,7 @@ def update(processed_answer, index, processed_answers, button):
         else:
             # Display the next question and response
             display_text = get_row(processing_dataset, next_index)
-            return display_text, gr.update(value=""), next_index, processed_answers
+            return display_text, gr.update(visible=True, value=""), next_index, processed_answers
         
     # Next Empty: Find the next unprocessed index
     if button == "Next Empty":
@@ -189,7 +212,7 @@ def update(processed_answer, index, processed_answers, button):
         else:
             # Display the next question and response
             display_text = get_row(processing_dataset, next_index)
-            return display_text, gr.update(value=""), next_index, processed_answers
+            return display_text, gr.update(visible=True, value=""), next_index, processed_answers
 
 def save_dataset(processing_dataset, save_dir_input, processed_answers):
     # Function to update the dataset using map
@@ -235,9 +258,6 @@ def run_inference(*args):
         return gr.update(value=str(e))
 
 def run_process_response(*args):
-    if args[0] == '':
-        error_message = 'Error: GROQ API key cannot be empty.'
-        return gr.update(value=error_message)
     os.environ['GROQ_API_KEY'] = args[0]
     input_args = [f"-d{args[1]}"]
     if args[2] != '': input_args.append(f"-s{args[2]}") 
@@ -282,20 +302,38 @@ def run_auto_eval(args):
 def get_model_reponse(eval_models, cur_idx):
     display_text = ''
     for idx,  model in enumerate(eval_models):
-        if model == 'length': continue
+        if model == 'length': continue # ignore the key storing the length of datasets 
         row = eval_models[model][cur_idx]
-        options = [f"{chr(65 + i)}. {option}" for i, option in enumerate(row['choices'])]
+
+        if choice_col is not None:
+            if len(choice_col) == 1:
+                options = [f"{chr(65 + i)}. {option}" for i, option in enumerate(row[choice_col[0]])]
+            else:
+                options = [f"{chr(65 + i)}. {row[option]}" for i, option in enumerate(choice_col)]
+
         if idx == 0: 
-            display_text += f'## Question {cur_idx+1}:\n{row["question"]}\n\n'
-            display_text += f'{options[0]}\n\n{options[1]}\n\n{options[2]}\n\n{options[3]}\n'
+            display_text += f'## Question {cur_idx+1}:\n{row[question_col]}\n\n'
+            if choice_col is not None: display_text += f'{options[0]}\n\n{options[1]}\n\n{options[2]}\n\n{options[3]}\n'
+
         display_text += f'### {model}:\n'
         display_text += f"{row['response']}"
-        if row['processed_answer'] not in ['A', 'B', 'C', 'D']:
+
+        if not row['processed_answer'].isalpha() or not (row['processed_answer'].lower() in choices or row['processed_answer'].upper() in choices): # unrelated responses 
             display_text += '❔\n'
-        elif ord(row['processed_answer']) - 65 != row['answer']:
+            return display_text
+
+        if choices == ['A', 'B', 'C', 'D']: # multiple choice 
+            ans = ord(row['processed_answer']) - 65
+        else: # decision 
+            ans = row['processed_answer'].lower()
+        
+        if ans != row[answer_col]:
             display_text += '❌\n'
         else:
             display_text += '✅\n'
+
+    display_text += f"\nCorrect answer: {chr(row[answer_col]+65) if choices == ['A', 'B', 'C', 'D'] else row[answer_col]}"
+
     return display_text
 
 def update_human_eval(eval_models, cur_idx, button):
@@ -313,8 +351,12 @@ def run_eval(*args):
     if args[5]: tag = 'SC'
     elif args[4]: tag = 'CoT'
     else: tag = str(args[3]) + '-shot'
+
+    # get the name of the columns of datasets 
+    get_ds_info(args[1])
+
     path = tag + '/' + args[1]
-    eval_models = {}
+    eval_models = {} # model_name: shortened.json, length: length of datasets 
     for model in models:
         if os.path.exists(os.path.abspath('shortened/' + model + '/' + path + '.json')):
             with open(os.path.abspath('shortened/' + model + '/' + path + '.json')) as f:
@@ -391,19 +433,18 @@ def create_ui():
                 def start_labeling(load_dir, save_dir):
                     if load_dir == '':
                         error_message = "Error: Load Directory cannot be empty."
-                        return [gr.update(visible=False), gr.update(visible=True), error_message, None, None]
+                        return [gr.update(visible=True), gr.update(visible=False), gr.update(), None, None]
                     if save_dir == '':
                         error_message = "Error: Save Directory cannot be empty."
-                        return [gr.update(visible=False), gr.update(visible=True), error_message, None, None]
+                        return [gr.update(visible=True), gr.update(visible=False), gr.update(), None, None]
                     if os.path.abspath(load_dir) == os.path.abspath(save_dir):
                         error_message = "Error: Load Directory and Save Directory must be different."
-                        return [gr.update(visible=False), gr.update(visible=True), error_message, None, None]
+                        return [gr.update(visible=True), gr.update(visible=False), gr.update(), None, None]
                     
-                    global processing_dataset 
                     try:
-                        processing_dataset, processed_answers, start_index = load_dataset(load_dir, save_dir)
+                        processed_answers, start_index = load_dataset(load_dir, save_dir)
                     except Exception as e:
-                        return [gr.update(visible=False), gr.update(visible=True), error_message, None, None]
+                        return [gr.update(visible=True), gr.update(visible=False), error_message, None, None]
                     
                     display_text = get_row(processing_dataset, start_index)
                     return [gr.update(visible=False), gr.update(visible=True), display_text, start_index, processed_answers]
@@ -420,8 +461,8 @@ def create_ui():
                     load_dir = gr.Textbox(label="Load Directory", placeholder="Enter the path to the load directory")
                     save_dir = gr.Textbox(label="Save Directory", placeholder="Enter the path to the save directory")
                     with gr.Row():
-                            auto_process_button = gr.Button("Auto Process", scale=0)
-                            human_labelling_button = gr.Button("Human Labelling", scale=0)  
+                        auto_process_button = gr.Button("Auto Process", scale=0)
+                        human_labelling_button = gr.Button("Human Labelling", scale=0)  
 
                 with gr.Column(visible=False) as process_output_group:
                     return_button = gr.Button("Return", elem_id='return_button', visible=False)
@@ -457,22 +498,22 @@ def create_ui():
                     outputs=[process_input_group, human_process_output_group, display, index_state, processed_answers_state]
                 )
                 prevEmpty_button.click(
-                    update,
+                    update_human_labelling,
                     inputs=[processed_answer_input, index_state, processed_answers_state, prevEmpty_button],
                     outputs=[display, processed_answer_input, index_state, processed_answers_state]
                 )
                 prev_button.click(
-                    update,
+                    update_human_labelling,
                     inputs=[processed_answer_input, index_state, processed_answers_state, prev_button],
                     outputs=[display, processed_answer_input, index_state, processed_answers_state]
                 )
                 next_button.click(
-                    update,
+                    update_human_labelling,
                     inputs=[processed_answer_input, index_state, processed_answers_state, next_button],
                     outputs=[display, processed_answer_input, index_state, processed_answers_state]
                 )
                 nextEmpty_button.click(
-                    update,
+                    update_human_labelling,
                     inputs=[processed_answer_input, index_state, processed_answers_state, nextEmpty_button],
                     outputs=[display, processed_answer_input, index_state, processed_answers_state]
                 )
