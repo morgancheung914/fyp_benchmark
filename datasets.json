@@ -1,0 +1,86 @@
+{
+    "PubMedQA": {
+        "path": "qiaojin/PubMedQA",
+        "subset": "pqa_labeled",
+        "choices": ["yes", "no", "maybe"],
+      "question_col": "question",
+      "answer_col": "final_decision",
+      "choice_col": null,
+      "benchmark_split": "test",
+      "sys_prompt": "Please read the question and pick the most suitable choice from 'yes', 'no', or 'maybe', you must include answer in the form: 'Answer: yes' or 'Answer: no' or 'Answer: maybe'",
+      "CoT_path": "CoT/PubMedQA_CoT.txt",
+      "fs_split": "train"
+    },
+    "MedMCQA": {
+        "path": "openlifescienceai/medmcqa",
+        "subset": null,
+        "choices": ["A", "B", "C", "D"],
+      "question_col": "question",
+      "answer_col": "cop",
+      "choice_col": ["opa", "opb", "opc", "opd"],
+      "benchmark_split": "validation",
+      "sys_prompt": "Please read the question and pick the most suitable choice from A, B, C, or D, you must include answer in the form: 'Answer: A' or 'Answer: B' or 'Answer: C' or 'Answer: D",
+      "CoT_path": "CoT/MedMCQA_CoT.txt",
+      "fs_split": "train"
+    },
+    "MMLU_anatomy": {
+        "path": "cais/mmlu",
+        "subset": "anatomy",
+        "choices": ["A", "B", "C", "D"],
+      "question_col": "question",
+      "answer_col": "answer",
+      "choice_col": ["choices"],
+      "benchmark_split": "test",
+      "sys_prompt": "Please read the question and pick the most suitable choice from A, B, C, or D, you must include answer in the form: 'Answer: A' or 'Answer: B' or 'Answer: C' or 'Answer: D",
+      "CoT_path": "CoT/MMLU_CoT.txt",
+      "fs_split": "dev"
+    },
+    "MMLU_biology": {
+        "path": "cais/mmlu",
+        "subset": "college_biology",
+        "choices": ["A", "B", "C", "D"],
+      "question_col": "question",
+      "answer_col": "answer",
+      "choice_col": ["choices"],
+      "benchmark_split": "test",
+      "sys_prompt": "Please read the question and pick the most suitable choice from A, B, C, or D, you must include answer in the form: 'Answer: A' or 'Answer: B' or 'Answer: C' or 'Answer: D",
+      "CoT_path": "CoT/MMLU_CoT.txt",
+      "fs_split": "dev"
+    },
+    "MMLU_medicine": {
+        "path": "cais/mmlu",
+        "subset": "college_medicine",
+        "choices": ["A", "B", "C", "D"],
+      "question_col": "question",
+      "answer_col": "answer",
+      "choice_col": ["choices"],
+      "benchmark_split": "test",
+      "sys_prompt": "Please read the question and pick the most suitable choice from A, B, C, or D, you must include answer in the form: 'Answer: A' or 'Answer: B' or 'Answer: C' or 'Answer: D",
+      "CoT_path": "CoT/MMLU_CoT.txt",
+      "fs_split": "dev"
+    },
+    "MMLU_clinical": {
+        "path": "cais/mmlu",
+        "subset": "clinical_knowledge",
+        "choices": ["A", "B", "C", "D"],
+      "question_col": "question",
+      "answer_col": "answer",
+      "choice_col": ["choices"],
+      "benchmark_split": "test",
+      "sys_prompt": "Please read the question and pick the most suitable choice from A, B, C, or D, you must include answer in the form: 'Answer: A' or 'Answer: B' or 'Answer: C' or 'Answer: D",
+      "CoT_path": "CoT/MMLU_CoT.txt",
+      "fs_split": "dev"
+    },
+    "HaluEval": {
+        "path": "pminervini/HaluEval",
+        "subset": "general",
+        "choices": ["yes", "no"],
+      "question_col": "user_query",
+      "answer_col": "hallucination",
+      "choice_col": null,
+      "benchmark_split": "data",
+      "sys_prompt": "Read the following user query and response. Please answer 'yes' if you think the response is a hallucination or 'no' if you think the response is not a hallucination.",
+      "CoT_path": null,
+      "fs_split": null
+    }
+  }
