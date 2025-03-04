@@ -15,7 +15,7 @@ import argparse
 parser = argparse.ArgumentParser(description="Argument parser for inference.py")
     
 # Optional -c argument to load from YAML config
-parser.add_argument('-c', '--config', type=str, default=None, help='Path to the YAML config file')
+parser.add_argument('-c', '--config', type=str, help='Path to the YAML config file')
 
 # Arguments for dataset and model if -c is not provided
 parser.add_argument('-d', '--dataset', nargs='+', type=str, help='List of dataset paths')
@@ -71,72 +71,51 @@ print(f">Bench>: Datasets loaded: {configs['dataset']['dataset_names']}")
 
 
 # inference 
-for dataset in list(datasets_dict.keys()):
-    if dataset in bench_datasets and datasets_dict[dataset] == None:
-        print(f">Error>: Error encountered when processing {dataset}")
+for idx, dataset in enumerate(datasets_dict):
+    print(f">Bench>: Datasets preprocessing for {dataset} finished.")
 
-    else:
-        # parse the contents into the designated prompt template 
-        if dataset == 'MedMCQA':
-            selected_ds = datasets_dict[dataset]['validation']
-            selected_ds = selected_ds.select(range(1000))
-            print(selected_ds[0])
+    selected_ds = datasets_dict[dataset]
 
-        elif dataset == 'HaluEval':
-            selected_ds = datasets_dict[dataset]['data']
-            selected_ds = selected_ds.select(range(500))
+    ds_test = [[
+            {"role": "system", "content": i['sys_content']},
             
-        else:   
-            selected_ds = datasets_dict[dataset]['test']
+            {"role": "user", "content": i['user_content']}] for i in selected_ds]
 
-        print(f">Bench>: Datasets preprocessing for {dataset} finished.")
+    dataloader = DataLoader(ds_test, batch_size = batch_size, shuffle=False, collate_fn = lambda x: x)
+    responses = []
+    print(f">Bench>: Starting inference on {dataset}.")
 
-        #test for deterministicness
+    for batch in tqdm(dataloader):
+        num_seq = 1 if not self_cons else self_cons #set number of sequences to generate
 
-        ds_test = [[
-                {"role": "system", "content": i['sys_content']},
-                
-                {"role": "user", "content": i['user_content']}] for i in selected_ds]
+        batch_responses = (model.batch_predict(batch, max_length = 300, num_return_seq = num_seq, temperature = temp, top_p = top_p))
 
-        dataloader = DataLoader(ds_test, batch_size = batch_size, shuffle=False, collate_fn = lambda x: x)
-        responses = []
-        print(f">Bench>: Starting inference on {dataset}.")
+        #print(f"batch: {batch_responses}\n")
+        #print(f"len: {len(batch_responses)}")
 
-        for batch in tqdm(dataloader):
-            #print(batch)
-            num_seq = 1 if not self_cons else self_cons #set number of sequences to generate
-  
-            batch_responses = (model.batch_predict(batch, max_length = 300, num_return_seq = num_seq, temperature = temp, top_p = top_p))
+        if self_cons: # if self_consistency is in effect, divide the list of results with the # of self-cons generations
+            for i in range(1):
+                curr = batch_responses[i*self_cons: i*self_cons + self_cons]
+                #pack as json string
+                curr_json = json.dumps(curr)
+                responses.append(curr_json)
+                #print(responses)
 
-            #print(f"batch: {batch_responses}\n")
-            #print(f"len: {len(batch_responses)}")
+        else:
+            #self_consistency is not in effect
+            responses.extend(batch_responses) 
+    
+    # appending the model response
+    selected_ds = selected_ds.add_column(name = "response", column = responses)
 
-            if self_cons: # if self_consistency is in effect, divide the list of results with the # of self-cons generations
-                for i in range(1):
-                    curr = batch_responses[i*self_cons: i*self_cons + self_cons]
-                    #pack as json string
-                    curr_json = json.dumps(curr)
-                    responses.append(curr_json)
-                    #print(responses)
+    if self_cons != False: #self_consistency responses
+        selected_ds.save_to_disk(f'responses/{configs["model"]}/SC/{dataset}')
 
-            else:
-                #self_consistency is not in effect
-                responses.extend(batch_responses) 
-        
-        # appending the model response
-        selected_ds = selected_ds.add_column(name = "response", column = responses)
+    elif CoT: # CoT responses
+        selected_ds.save_to_disk(f'responses/{configs["model"]}/CoT/{dataset}')
 
-        if self_cons != False: #self_consistency responses
-            selected_ds.save_to_disk(f'responses/{configs["model"]}/SC/{dataset}')
-
-        elif CoT: # CoT responses
-            selected_ds.save_to_disk(f'responses/{configs["model"]}/CoT/{dataset}')
-
-        else: # 0-shot, 1-shot, 3-shot reponses
-            selected_ds.save_to_disk(f'responses/{configs["model"]}/{number_shot}-shot/{dataset}')
+    else: # 0-shot, 1-shot, 3-shot reponses
+        selected_ds.save_to_disk(f'responses/{configs["model"]}/{number_shot}-shot/{dataset}')
 
 
-        print(f">Bench>: Inferencing on {dataset} finished.")
-
-
-
+    print(f">Bench>: Inferencing on {dataset} finished.")
