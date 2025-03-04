@@ -14,7 +14,9 @@ from datasets import Dataset
 import json 
 import re
 
-
+# load the attributes of datasets
+with open('datasets.json', 'r') as f:
+    datasets_info = json.load(f)
 
 def remove_punctuation_and_whitespace(input_string):
     # Remove punctuation
@@ -31,47 +33,38 @@ def load_if_exists(dataset_path):
         return None, None
 
 # Function to query the LLaMA3 model
-def query_llama3(text, dataset_name):
+def query_llama3(response, user_content, ds_info):
 
     #get api key from environment
     client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
     
-    if dataset_name in ["MMLU_biology", "MMLU_anatomy", "MMLU_medicine", "MMLU_clinical", "MedMCQA"]:
-        choices = "A, B, C or D"
-    if dataset_name in ["PubMedQA"]:
-        choices = "Yes No or Maybe"
-    if dataset_name in ["HaluEval"]:
-        choices = "Yes or No"
-    
-    examples = """ String 1:  \"a
-Reasoning:The best advice to a 29-year-old pregnant woman with a previous child with Down Syndrome is to have a test done as her age is below 35 years (Choice A). This is\"
-Answer 1: A
+    examples = f""" 
+Example 1:
+Question: A 29 yrs old woman with a pregnancy of 17 week has a 10 years old boy with down syndrome. She does not want another down syndrome kid; best advice to her is, Choices: A. No test is required now as her age is below 35 years, B. Ultra sound at this point of time will definitely tell her that next baby will be down syndromic or not, C. Amniotic fluid samples plus chromosomal analysis will definitely tell her that next baby will be down syndromic or not, D. blood screening at this point of time will clear the exact picture
+Response:  \" Reasoning:The best advice to a 29-year-old pregnant woman with a previous child with Down Syndrome is to have a test done as her age is below 35 years (Choice A)\"
+Answer: A
 
-String 2: \"c
+Example 2:
+Question: Concentration of tropicamide: Choices: A. 0.01, B. 0.02, C. 0.03, D. 0.04
+Response: \" The best 2 answer are A and D\"
+Answer: A
 
-            The best 2 answer are A and D.
-
-            Question: Concentration of tropicamide:, Choices: A: 0.01, B: 0.02, C\"
-Answer 2: C
-
-String 3: \" d
-
-Here is your step-by-step explanation
-
-To answer this question, I will analyze the clinical information given and discuss the possible diagnosis for each choice.
-
-1. Tuberculosis (Ans. A): T \"
-
-Answer 3: D
+Example 3:
+Question: In a 6-month-old child, thick curd like white patch appears on the buccal mucosa. On rubbing it leaves an erythematous patch. Most likely diagnosis is: Choice: A. Tuberculosis, B. Lichen planus, C. Lupus erythematous, D. Candidiasis
+Response: \" D Here is your step-by-step explanation. To answer this question, I will analyze the clinical information given and discuss the possible diagnosis for each choice.\"
+Answer: D
 
     """
     messages = [
     {
-        "role": "user", "content": f"""This is a string that answers a biomedical question, please determine the short answer of the sentence from this list of choices: {choices}, or None if the long answer does not mention any of the choices, usually the choice will be at the start of the string, they could be in upper-case or lower-case
-    Please answer with the short answer only and nothing else. Now here are some examples: {examples}
+        "role": "user", "content": 
+f"""Given a pair of a biomedical question and a response, please shorten the response to the list of choices of short answers: {ds_info["choices"]} according to its meaning, or None if the response does not mention any of them.
+Please answer with the short answer only. Now here are some examples: {examples}
 
-    
-    And here is the string you need to determine: \"""" + text + "\" This is the end of the string."
+{user_content}
+Response: {response}
+Answer:
+    """
     }
     
     ]
@@ -79,16 +72,14 @@ Answer 3: D
     ans = None
     retry_count = 0
     # Reprompt answer if short answer does not match
-    print(f"text: {text}\n")
-
-    while (ans not in ["A", "B", "C", "D", "Yes", "No", "Maybe"] and retry_count <= 3):
+    while (ans not in [x.lower for x in ds_info["choices"]] and ans not in [x.upper() for x in ds_info["choices"]] and retry_count <= 3):
         
         groq_retry_count = 3
         for attempt in range(groq_retry_count):
             try:
                 chat_completion = client.chat.completions.create(
                     messages = messages,
-                    model = "llama-3.1-70b-versatile"
+                    model = "llama-3.3-70b-versatile"
                     
                 )
                 break
@@ -100,20 +91,18 @@ Answer 3: D
                 time.sleep(30)
 
                 
-
-                
         ans = chat_completion.choices[0].message.content
         ans = remove_punctuation_and_whitespace(ans)
         
         retry_count += 1
 
-    if ans in ["A", "B", "C", "D", "Yes", "No", "Maybe"]:
+    if ans.upper() in ds_info["choices"] or ans.lower() in ds_info["choices"]:
         print(f"Parseable answer: {ans} received")
         return ans
 
     else:
         print(f"Unparseable answer: {ans} received")
-        return ans + "<UPB>"
+        return ans + "<UPB>" # <UPB> token indicating an unparsable answer, requiring human postprocessing
     
 
     # Make the request
@@ -148,65 +137,71 @@ def dataset_concat(ds, save_path):
         combined = ds 
 
     
-    #Save to path
+    # save to path
     combined.to_json(save_path, lines=False)
 
-def process_example(example, dataset_name, self_con):
+def process_example(row, ds_info, self_con):
+    choices = "|".join(ds_info["choices"])
+    pattern = f'Answer:\s*({choices})' 
+    print(f"raw response: {row['response']}")
     if self_con:
-        k_paths = json.loads(example["response"])
+        k_res = json.loads(row["response"])
         k_ans = ['' for i in range(self_con)]
         # Attempt to parse the examples
         for i in range(self_con):
-            # regex matching
-            pattern = r'\"Answer\":\s*([ABCD])'
-
-            matcher = re.search(pattern, k_paths[i])
+            # regex matching for the available choice, ignoring case 
+            matcher = re.search(pattern, k_res[i], re.IGNORECASE)
 
             if matcher:
                 print("Answer found: ", matcher.group(1))
                 k_ans[i] = matcher.group(1)
 
-            else:
+            else: # no match, move to Llama3 for further processing 
                 print("no match, proceeding with groq.")
-                k_ans[i] = query_llama3(example["response"], dataset_name)
+                k_ans[i] = query_llama3(row["response"], row["user_content"], ds_info)
     
-        #aggregate the answer
-        example["processed_answer"] = json.dumps(k_ans)
+        # aggregate the answer
+        row["processed_answer"] = json.dumps(k_ans)
         
     
     else:
-        pattern = r'\"Answer\":\s*([ABCD])'
-        matcher = re.search(pattern, example['response'])
+        matcher = re.search(pattern, row["response"], re.IGNORECASE)
 
         if matcher:
             print("Answer found: ", matcher.group(1))
-            example['processed_answer'] = matcher.group(1)
+            row['processed_answer'] = matcher.group(1)
+
         else:
             print("no match, proceeding with groq.")
-            example["processed_answer"] = query_llama3(example["response"], dataset_name)
+            row["processed_answer"] = query_llama3(row["response"], row["user_content"], ds_info)
     
-    return example 
+    return row
 
-def evaluate(dataset_path, dataset_name, savedir, self_con):
+def evaluate(dpath, dname, savedir, self_con):
     
-    dataset = load_from_disk(dataset_path)
+    dataset = load_from_disk(dpath)
     dataset = dataset.map(lambda example, idx: {"id": idx}, with_indices=True)
+
+    """
     if dataset_name == "MedMCQA":
         dataset = dataset.select(range(1000))
-
-    # Check previous progress 
-
+    """
+    
     if (savedir == None): # makeup the save directory 
-        savedir = f"shortened/{dataset_path[10:]}"
+        savedir = f"shortened/{dpath[dpath.find('/')+1:]}.json"
 
     print(f">Eval>: Saving directory at {savedir}")
+
+    # Check previous progress 
     progress_id, progress_dataset = load_if_exists(savedir)
     if progress_id: 
         start_index = progress_id + 1
     
         if start_index >= len(dataset):
             return None
-        dataset = dataset.select(range(start_index, 1000)) if (dataset_name == "MedMCQA") else dataset.select(range(start_index, len(dataset)))
+        
+        # dataset = dataset.select(range(start_index, 1000)) if (dataset_name == "MedMCQA") else dataset.select(range(start_index, len(dataset)))
+        dataset = dataset.select(range(start_index, len(dataset)))
         print(f">Eval>: Progress found, starting from row {start_index}")
     else:
         start_index = 0
@@ -221,11 +216,12 @@ def evaluate(dataset_path, dataset_name, savedir, self_con):
             end_index = min(local_start + chunk_size, len(dataset))
             chunk = dataset.select(range(local_start, end_index))
 
-            ## process chunk          
-            processed_chunk = chunk.map(process_example, fn_kwargs={"dataset_name": dataset_name, "self_con": self_con})
+            # process chunk  
+            ds_info = datasets_info[dname]     
+            processed_chunk = chunk.map(process_example, fn_kwargs={"ds_info": ds_info, "self_con": self_con})
             
-            #processed_dataset = dataset.map(process_example, fn_kwargs={"dataset_name": dataset_name})
-            print(processed_chunk[0])
+            # processed_dataset = dataset.map(process_example, fn_kwargs={"dataset_name": dataset_name})
+            # print(processed_chunk[0])
             # Save the updated dataset
             dataset_concat(processed_chunk, savedir)
             print(f">Eval>: rows {start_index + local_start} to {start_index + end_index} saved")
@@ -253,12 +249,12 @@ def evaluate(dataset_path, dataset_name, savedir, self_con):
             
     #         processed_dataset.to_json(f"shortened/{model_name}/{dataset_name}", lines=False)
 
-    print(f">Eval>: {dataset_name} answer processing finished and saved at {savedir}.")
+    print(f">Eval>: {dname} answer processing finished and saved at {savedir}.")
 
     return
 
 
-def main():
+if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Argument parser for process_response.py")
     
@@ -281,8 +277,9 @@ def main():
             configs = yaml.safe_load(file)
            
 
-        if configs['response']['from_inference']: # decide if to use the model and parameters in inference
-            model_name = configs['model']
+        if configs['response']['from_inference']: # use the response from inference.py
+            mname = configs['model']
+            dnames = set(configs['dataset']['dataset_names'])
             fs = configs['generation']['few_shot']
             cot = configs['generation']['CoT']
             self_con = configs['generation']['k_self_consistency']
@@ -294,8 +291,15 @@ def main():
             else:
                 prompt = f'{fs}-shot'
 
+            dname_to_dpath = {dname: f'responses/{mname}/{prompt}/{dname}' for i, dname in enumerate(dnames)}
+
+        else:
+            dpaths = configs['response']['response_paths']
+            dname_to_dpath = {path[path.rfind('/')+1:]: path for path in dpaths}
+
         savedir = None if configs['response']['shortened_save_path'] is None else configs['response']['shortened_save_path']
 
+        """
         # Create a Jinja2 template from the content
         template_content = yaml.dump({
             'dataset': configs['dataset'],
@@ -313,19 +317,17 @@ def main():
         rendered_config = yaml.safe_load(rendered_content)
         
         d_paths = rendered_config['response']['chosen_datasets']
+        """
+
     else: 
-        dp = args.dataset
-        savedir = args.savedir # currently only support one processing one dataset at one script instance
+        dpaths = args.dataset
+        savedir = args.savedir 
         self_con = args.k_self_con
 
-        d_paths = {p[len(p)-p[::-1].index('/'):]: p for p in dp}
-        
+        dname_to_dpath = {path[path.rfind('/')+1:]: path for path in dpaths} # dataset name: dataset path 
 
-    for d in list(d_paths.keys()):
-        # get dataset name and path
-        d_path = d_paths[d]
-        print(f">Eval>: Processing answers by {d_path[10:10+d_path[10:].index('/')]} for {d}")
-        
-        evaluate(d_path, d, savedir, self_con)
+    for i, dname in enumerate(dname_to_dpath):
+        path = dname_to_dpath[dname]
+        print(f">Eval>: Processing answers by {path[path.find('/')+1:path.find('/',path.find('/')+1)]} for {dname}")
 
-main()
+        evaluate(path, dname, savedir, self_con)
