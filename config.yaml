@@ -9,30 +9,26 @@ dataset:
     - MedMCQA
     #- HaluEval
 
-model: ChatGLM
+model: Llama3
 
 generation:
   few_shot: 0 # number of shots 
-  CoT: False # True/ False 
+  CoT: True # True/ False 
   k_self_consistency: 0 # number of self-consistency
-  top_p: 0.9
+  top_p: 0.9 
   temperature: 1
   batch_size: 3
 
 # process_response.py
 response:
-  from_inference: True # set to true to use the responses by the same model with the same generation parameters in inference
+  from_inference: True # set to true to use the responses by the same model from inference.py, so no need specify the response path 
 
-  chosen_datasets: # Uncomment the datasets you would like to shorten and specify its corresponding path 
-   MMLU_biology: "responses/{{ model }}/{{ prompt }}/MMLU_biology" 
-   #MMLU_anatomy: "responses/{{ model }}/MMLU_anatomy" 
-   #MMLU_medicine: "responses/{{ model }}/MMLU_medicine" 
-   #MMLU_clinical: "responses/{{ model }}/MMLU_clinical"
-   #PubMedQA: "responses/{{ model }}/PubMedQA"
-   #MedMCQA: "responses/{{ model }}/MedMCQA"
-   #HaluEval: "responses/{{ model }}/HaluEval"
+  # specify the path to response 
+  response_paths:  
+   "responses/Llama3/0-shot/MMLU_biology" 
 
+  # specify the path to save the shortened responses, if set to null, default='shortened/(model)/{prompt}/{datasets}'
   shortened_save_path: null
 
-# eval.py
-eval: shortened/Med42/0-shot
+# eval.py 
+eval_path: shortened/Llama3/CoT # specify the folder for evaluation 
