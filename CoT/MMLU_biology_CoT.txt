@@ -1,0 +1,14 @@
+Example 1:
+Question: Which of the following represents an accurate statement concerning arthropods?
+Choice: A. They possess an exoskeleton composed primarily of peptidoglycan, B. They possess an open circulatory system with a dorsal heart, C. They are members of a biologically unsuccessful phylum incapable of exploiting diverse habitats and nutrition sources, D. They lack paired, jointed appendages
+Answer: B. Arthropods are invertebrates with a chitinous exoskeleton, not peptidoglycan, which is found in bacterial cell walls, ruling out choice A. They are incredibly successful evolutionarily, found in nearly every habitat, so choice C is false. Arthropods are defined by their paired, jointed appendages, making D incorrect. Importantly, they possess an open circulatory system, where hemolymph is pumped into body cavities, and this system is powered by a dorsal heart—making choice B the correct and accurate statement.
+
+Example 2:
+Question: In a given population, 1 out of every 400 people has a cancer caused by a completely recessive allele, b. Assuming the population is in Hardy-Weinberg equilibrium, which of the following is the expected proportion of individuals who carry the b allele but are not expected to develop the cancer?
+Choice: A. 1/400, B. 19/400, C. 20/400, D. 38/400
+Answer: A recessive disease means affected individuals have genotype bb, so q * q = 1/400. Taking the square root, q = 1/20. The frequency of carriers (heterozygotes, Bb) is 2pq. Since p≈1, we have 2pq≈2×1×1/20 = 1/10. Thus, the expected proportion of carriers is 1/10. Subtracting those who are bb (1/400), the carriers who won’t develop cancer are 39/400. The closest valid answer is D. 38/400, accounting for rounding in approximation.
+
+Example 3:
+Question: The presence of homologous structures in two different organisms, such as the humerus in the front limb of a human and a bird, indicates that
+Choice: A. the human and bird are polyphyletic species, B. a human's and bird's evolution is convergent, C. the human and bird belong to a clade, D. the human and bird developed by analogy
+Answer: Homologous structures arise from a common ancestor and share similar anatomical features despite possibly differing functions. The humerus in both humans and birds suggests shared evolutionary origin, not independent development. This supports the idea that humans and birds belong to the same clade—a monophyletic group that includes a common ancestor and all its descendants. Choice A is incorrect because polyphyletic groups do not share a recent common ancestor. B and D refer to analogous structures, which result from convergent evolution, not homology. Thus, C is the correct and most scientifically accurate choice.

@@ -1,0 +1,14 @@
+Example 1:
+Question: What is the embryological origin of the hyoid bone?
+Choices: A: The first pharyngeal arch, B: The first and second pharyngeal arches, C: The second pharyngeal arch, D: The second and third pharyngeal arches. 
+Answer: The hyoid bone develops from the pharyngeal arches during embryogenesis. Specifically, the second pharyngeal arch (Reichert's cartilage) contributes to the lesser horn and upper body of the hyoid, while the third pharyngeal arch forms the greater horn and lower body. Since both the second and third pharyngeal arches are involved in its formation, the correct answer must include both structures. Thus, the correct answer is: D. The second and third pharyngeal arches.
+
+Example 2:
+Question: The pleura
+Choices: A: have no sensory innervation, B: are separated by a 2 mm space, C: extend into the neck, D: are composed of respiratory epithelium
+Answer: The pleura consist of two layers: the parietal pleura (lining the thoracic cavity) and the visceral pleura (covering the lungs). They enclose the pleural cavity, which contains a thin layer of fluid, but the space is not consistently 2 mm. The pleura are not composed of respiratory epithelium but rather mesothelium. Additionally, the parietal pleura is richly innervated with sensory fibers, ruling out the absence of sensory innervation. Importantly, the pleura extend superiorly above the first rib into the neck, forming the cervical pleura (pleural dome). Thus, the correct answer is: C. Extend into the neck.
+
+Example 3:
+Question: Which of the following is the body cavity that contains the pituitary gland?
+Choices: A: Abdominal, B: Cranial, C: Pleural, D: Spinal
+Answer: The pituitary gland is a small endocrine organ located at the base of the brain, within the sella turcica of the sphenoid bone. It is housed within the cranial cavity, which encloses the brain and associated structures. The abdominal cavity contains digestive organs, the pleural cavity surrounds the lungs, and the spinal cavity houses the spinal cord. Since the pituitary gland is situated within the cranial cavity, the correct answer is: B. Cranial.

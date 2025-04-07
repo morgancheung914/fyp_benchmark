@@ -1,0 +1,11 @@
+Example 1:
+Question: Do mitochondria play a role in remodelling lace plant leaves during programmed cell death?
+Answer: Mitochondria are known to be involved in various cellular processes, including programmed cell death (PCD). In the lace plant, researchers observed mitochondrial dynamics in vivo as PCD progressed. Mitochondria, along with chloroplasts, were seen moving on transvacuolar strands to form a ring around the nucleus, suggesting active participation. Additionally, the study demonstrated the use of CsA in a whole-plant system, reinforcing the role of mitochondria in early PCD regulation. Given this evidence, mitochondria indeed play a crucial role in remodeling lace plant leaves during PCD. Thus, the correct answer is: Yes.
+
+Example 2:
+Question: Landolt C and snellen e acuity: differences in strabismus amblyopia?
+Answer: When comparing visual acuity measurements using the Landolt C and Snellen E charts in strabismus amblyopia, researchers found only a slight overestimation by the Snellen E. While minor differences were observed in the lower visual acuity range, these were not significant enough to suggest a meaningful discrepancy between the two methods. Thus, the data indicate that there is no substantial difference in how these charts measure acuity in strabismus amblyopia. Therefore, the correct answer is: No.
+
+Example 3: 
+Question: Is the Hawkins sign able to predict necrosis in fractures of the neck of the astragalus?
+Answer: The Hawkins sign is used to assess avascular necrosis in fractures of the talus (astragalus). A positive Hawkins sign indicates bone viability and effectively rules out necrosis. However, the absence of the sign does not necessarily confirm necrosis, as other factors may influence bone healing. Given this limitation, the predictive ability of the Hawkins sign is uncertain—it can reliably indicate when necrosis is not present, but it cannot definitively confirm its occurrence. Thus, the correct answer is: Maybe.
