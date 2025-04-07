@@ -48,7 +48,7 @@ class Med42Model(BaseModel):
         outputs_all = self.model.generate(   
     input_ids,
     max_new_tokens=max_length,
-    eos_token_id=terminators,
+    pad_token_id=self.tokenizer.eos_token_id,
     do_sample=True,
     temperature=temperature,
     num_return_sequences = num_return_seq,

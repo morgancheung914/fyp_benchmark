@@ -31,11 +31,9 @@ class ChatGLMModel(BaseModel):
     def batch_predict(self, input_text, max_length, num_return_seq, temperature, top_p):
         responses = []
         for text in input_text:
-
-
-            res, history = self.model.chat(self.tokenizer, "", history=text)
+            res, history = self.model.chat(self.tokenizer, text[1]["content"], history=[text[0]], pad_token_id=self.tokenizer.eos_token_id)
             
-            
+            print(res)
             responses.append(res)
         #     terminators = [
         #     self.tokenizer.eos_token_id,
