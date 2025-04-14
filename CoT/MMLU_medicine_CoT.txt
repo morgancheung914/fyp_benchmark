@@ -1,0 +1,14 @@
+Example 1:
+Question: Glucose is transported into the muscle cell:
+Choices: A. via protein transporters called GLUT4, B. only in the presence of insulin, C. via hexokinase, D. via monocarbylic acid transporters
+Answer: Muscle cells take up glucose primarily through specialized protein transporters known as GLUT4. These transporters are embedded in the cell membrane and facilitate glucose entry by facilitated diffusion. While insulin significantly enhances GLUT4 translocation to the membrane, basal glucose uptake can still occur without insulin, making B inaccurate. Hexokinase is an enzyme that phosphorylates glucose after it enters the cell—it does not transport glucose, ruling out C. Monocarboxylic acid transporters move lactate and similar molecules, not glucose, so D is incorrect. Therefore, the correct answer is A.
+
+Example 2:
+Question: Which of the following is not a true statement?
+Choices: A. Muscle glycogen is broken down enzymatically to glucose-1-phosphate, B. Elite endurance runners have a high proportion of Type I fibres in their leg muscles, C. Liver glycogen is important in the maintenance of the blood glucose concentration, D. Insulin promotes glucose uptake by all tissues in the body
+Answer: Insulin facilitates glucose uptake in most tissues, especially muscle and adipose tissue, via GLUT4 transporters. However, not all tissues are insulin-dependent. The brain, liver, and red blood cells, for example, take up glucose independently of insulin. Therefore, statement D is incorrect. The other statements are true: muscle glycogen is enzymatically converted to glucose-1-phosphate for energy, Type I muscle fibers (slow-twitch) are abundant in endurance athletes due to their oxidative capacity, and liver glycogen plays a crucial role in stabilizing blood glucose levels. Hence, D is the correct answer as the false statement.
+
+Example 3:
+Question: In a genetic test of a newborn, a rare genetic disorder is found that has X-linked recessive transmission. Which of the following statements is likely true regarding the pedigree of this disorder?
+Choices: A. All descendants on the maternal side will have the disorder, B. Females will be approximately twice as affected as males in this family, C. All daughters of an affected male will be affected, D. There will be equal distribution of males and females affected
+Answer: X-linked recessive disorders typically affect males more because they have only one X chromosome. An affected male must pass his only X chromosome—containing the defective gene—to all his daughters. Since daughters receive one X from each parent, they will all be carriers of the disorder. However, if the mother also carries the mutation, these daughters may be affected. While option C doesn't account for carrier status explicitly, it’s the most likely true statement in terms of inheritance pattern. Options A, B, and D do not reflect X-linked recessive transmission accurately. So, C is correct.

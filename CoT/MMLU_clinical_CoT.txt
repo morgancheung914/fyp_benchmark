@@ -1,0 +1,14 @@
+Example 1:
+Question: The energy for all forms of muscle contraction is provided by:
+Choices: A. ATP, B. ADP, C. phosphocreatine, D. oxidative phosphorylation
+Answer: Adenosine triphosphate (ATP) is the immediate and direct source of energy for muscle contraction. It binds to myosin heads, allowing them to detach from actin and reset for another contraction cycle. While phosphocreatine and oxidative phosphorylation help regenerate ATP during sustained or intense activity, they are not the direct energy source for contraction itself. ADP is a product of ATP breakdown, not a usable energy source on its own. Therefore, ATP is essential and universal in powering all types of muscle contraction, making A the correct answer.
+
+Example 2:
+Question: What is the difference between a male and a female catheter?
+Choices: A. Male and female catheters are different colours, B. Male catheters are longer than female catheters, C. Male catheters are bigger than female catheters, D. Female catheters are longer than male catheters
+Answer: The primary anatomical difference between male and female urinary tracts is urethral length—males have significantly longer urethras than females. As a result, male catheters are designed to be longer (typically around 40 cm) to ensure they reach the bladder. Female catheters are shorter (usually around 20 cm) because their urethra is much shorter. The size or color of the catheter does not determine gender-specific use. Therefore, the correct and clinically relevant distinction is length, making B the accurate answer.
+
+Example 3:
+Question: Glycolysis is the name given to the pathway involving the conversion of:
+Choices: A. glycogen to glucose-1-phosphate, B. glycogen or glucose to fructose, C. glycogen or glucose to pyruvate or lactate, D. glycogen or glucose to pyruvate or acetyl CoA
+Answer: Glycolysis is the metabolic pathway that breaks down glucose (or glucose derived from glycogen) into pyruvate under aerobic conditions, or into lactate under anaerobic conditions. This process occurs in the cytoplasm and generates ATP and NADH. While glycogen must first be broken down to glucose-6-phosphate, the core glycolytic pathway starts with glucose and ends with pyruvate or lactate, not fructose or acetyl CoA. Acetyl CoA formation occurs later in the mitochondria during the Krebs cycle. Thus, the correct answer is C.
