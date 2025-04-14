@@ -85,10 +85,10 @@ with open('config.yaml', 'r') as file:
 def get_ds_info(dname):
     global processing_dataset, question_col, answer_col, choice_col, choices 
     ds_info = datasets_info[dname]
-    question_col = ds_info['question_col']
-    answer_col = ds_info['answer_col']
-    choice_col = ds_info['choice_col']
-    choices = ds_info['choices']
+    question_col = ds_info['question']
+    answer_col = ds_info['answer']
+    choice_col = ds_info['choice']
+    choices = ['A', 'B', 'C', 'D'] if ds_info['type'] == 'multi' else ['yes', 'no', 'maybe']
 
 def load_dataset(load_dir, save_dir):
     # Always load the original dataset from load_dir

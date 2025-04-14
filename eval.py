@@ -33,8 +33,8 @@ if __name__ == '__main__':
         ds_info = datasets_info[dname]
 
         # get the available choices and name of answer column 
-        choices = ds_info["choices"] 
-        answer_col = ds_info["answer_col"]
+        choices = ['A', 'B', 'C', 'D'] if ds_info['type'] == 'multi' else ['yes', 'no', 'maybe']
+        answer_col = ds_info["answer"]
 
         if dname == 'HaluEval': conf_mat, tp, fp, tn, fn = True, 0, 0, 0, 0
         else: correct = 0 
