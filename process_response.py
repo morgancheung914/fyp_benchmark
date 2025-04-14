@@ -1,12 +1,10 @@
 
 #import requests
-from datasets import load_from_disk
-from datasets import concatenate_datasets
+from datasets import load_from_disk, concatenate_datasets
 import yaml
-from jinja2 import Template
 import os 
-from groq import Groq
 import groq
+from openai import OpenAI
 import string 
 import time
 import argparse
@@ -32,12 +30,12 @@ def load_if_exists(dataset_path):
     else: 
         return None, None
 
-# Function to query the LLaMA3 model
-def query_llama3(response, user_content, ds_info):
 
+def query_llama3(response, user_content, ds_info):
+    """Query Llama3-80B-versatile using Groq"""
     #get api key from environment
-    client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-    
+    client = groq.Groq(api_key=os.environ.get("GROQ_API_KEY"))
+    choices = ['A', 'B', 'C', 'D'] if ds_info['type'] == 'multi' else ['yes', 'no', 'maybe']
     examples = f""" 
 Example 1:
 Question: A 29 yrs old woman with a pregnancy of 17 week has a 10 years old boy with down syndrome. She does not want another down syndrome kid; best advice to her is, Choices: A. No test is required now as her age is below 35 years, B. Ultra sound at this point of time will definitely tell her that next baby will be down syndromic or not, C. Amniotic fluid samples plus chromosomal analysis will definitely tell her that next baby will be down syndromic or not, D. blood screening at this point of time will clear the exact picture
@@ -57,22 +55,18 @@ Answer: D
     """
     messages = [
     {
-        "role": "user", "content": 
-f"""Given a pair of a biomedical question and a response, please shorten the response to the list of choices of short answers: {ds_info["choices"]} according to its meaning, or None if the response does not mention any of them.
-Please answer with the short answer only. Now here are some examples: {examples}
-
-{user_content}
+        "role": "system", "content": 
+f"""Given a pair of a biomedical question and a response, please shorten the response to the list of choices of short answers: {choices} according to its meaning, or None if the response does not mention any of them.
+Please answer with the short answer only. Now here are some examples: {examples}"""}, 
+{"role": "system", "content": f"""{user_content}
 Response: {response}
-Answer:
-    """
-    }
-    
-    ]
+Answer: """
+}]
 
     ans = None
     retry_count = 0
     # Reprompt answer if short answer does not match
-    while (ans not in [x.lower for x in ds_info["choices"]] and ans not in [x.upper() for x in ds_info["choices"]] and retry_count <= 3):
+    while (ans not in [x.lower for x in ds_info["choice"]] and ans not in [x.upper() for x in ds_info["choice"]] and retry_count <= 3):
         
         groq_retry_count = 3
         for attempt in range(groq_retry_count):
@@ -96,21 +90,63 @@ Answer:
         
         retry_count += 1
 
-    if ans.upper() in ds_info["choices"] or ans.lower() in ds_info["choices"]:
+    if ans.upper() in choices or ans.lower() in choices:
         print(f"Parseable answer: {ans} received")
         return ans
 
     else:
         print(f"Unparseable answer: {ans} received")
         return ans + "<UPB>" # <UPB> token indicating an unparsable answer, requiring human postprocessing
-    
 
-    # Make the request
-    #response = requests.post(api_endpoint, json=payload, headers=headers)
-    #response_data = response.json()
 
-    # Extract the response
-    #return response_data['choices'][0]['text'].strip()
+def query_deepseek(response, user_content, ds_info):
+    """Query Deepseek-V3"""
+    client = OpenAI(api_key=os.environ.get("DEEPSEEK_API_KEY"), base_url="https://api.deepseek.com")
+    choices = ['A', 'B', 'C', 'D'] if ds_info['type'] == 'multi' else ['yes', 'no', 'maybe']
+    examples = f""" 
+Example 1:
+Question: A 29 yrs old woman with a pregnancy of 17 week has a 10 years old boy with down syndrome. She does not want another down syndrome kid; best advice to her is, Choices: A. No test is required now as her age is below 35 years, B. Ultra sound at this point of time will definitely tell her that next baby will be down syndromic or not, C. Amniotic fluid samples plus chromosomal analysis will definitely tell her that next baby will be down syndromic or not, D. blood screening at this point of time will clear the exact picture
+Response:  \" Reasoning:The best advice to a 29-year-old pregnant woman with a previous child with Down Syndrome is to have a test done as her age is below 35 years (Choice A)\"
+Answer: A
+
+Example 2:
+Question: Concentration of tropicamide: Choices: A. 0.01, B. 0.02, C. 0.03, D. 0.04
+Response: \" The best 2 answer are A and D\"
+Answer: A
+
+Example 3:
+Question: In a 6-month-old child, thick curd like white patch appears on the buccal mucosa. On rubbing it leaves an erythematous patch. Most likely diagnosis is: Choice: A. Tuberculosis, B. Lichen planus, C. Lupus erythematous, D. Candidiasis
+Response: \" D Here is your step-by-step explanation. To answer this question, I will analyze the clinical information given and discuss the possible diagnosis for each choice.\"
+Answer: D"""
+
+    messages = [
+    {
+        "role": "system", "content": 
+f"""Given a pair of a biomedical question and a response, please shorten the response to the list of choices of short answers: {choices} according to its meaning, or None if the response does not mention any of them.
+Please answer with the short answer only. Now here are some examples: {examples}"""}, 
+{"role": "user", "content": f"""{user_content}
+Response: {response}
+Answer: """
+}]
+
+    response = client.chat.completions.create(
+    model="deepseek-chat",
+    messages=messages,
+    stream=False
+    )
+
+    ans = response.choices[0].message.content
+    print(ans)
+
+    if ans.upper() in choices or ans.lower() in choices:
+        print(f"Parseable answer: {ans} received")
+        return ans
+
+    else:
+        print(f"Unparseable answer: {ans} received")
+        return ans + "<UPB>" # <UPB> token indicating an unparsable answer, requiring human postprocessing
+
+
 def convert_cop_to_int(example):
     example['cop'] = int(example['cop'])
     return example
@@ -140,10 +176,10 @@ def dataset_concat(ds, save_path):
     # save to path
     combined.to_json(save_path, lines=False)
 
-def process_example(row, ds_info, self_con):
-    choices = "|".join(ds_info["choices"])
+def process_example(row, ds_info, self_con, query_model):
+    choices = '|'.join(['A', 'B', 'C', 'D'] if ds_info['type'] == 'multi' else ['Yes', 'No', 'Maybe'])
     pattern = f'Answer:\s*({choices})' 
-    print(f"raw response: {row['response']}")
+    # print(f"raw response: {row['response']}")
     if self_con:
         k_res = json.loads(row["response"])
         k_ans = ['' for i in range(self_con)]
@@ -156,9 +192,13 @@ def process_example(row, ds_info, self_con):
                 print("Answer found: ", matcher.group(1))
                 k_ans[i] = matcher.group(1)
 
-            else: # no match, move to Llama3 for further processing 
-                print("no match, proceeding with groq.")
-                k_ans[i] = query_llama3(row["response"], row["user_content"], ds_info)
+            else: # no match, move to Llama3 or Deepseekfor further processing 
+                if query_model == "Deepseek":
+                    print("no match, proceeding with Deepseek.")
+                    row["processed_answer"] = query_deepseek(row["response"], row["user_content"], ds_info)
+                else:
+                    print("no match, proceeding with groq.")
+                    row["processed_answer"] = query_llama3(row["response"], row["user_content"], ds_info)
     
         # aggregate the answer
         row["processed_answer"] = json.dumps(k_ans)
@@ -172,12 +212,16 @@ def process_example(row, ds_info, self_con):
             row['processed_answer'] = matcher.group(1)
 
         else:
-            print("no match, proceeding with groq.")
-            row["processed_answer"] = query_llama3(row["response"], row["user_content"], ds_info)
+            if query_model == "Deepseek":
+                print("no match, proceeding with Deepseek.")
+                row["processed_answer"] = query_deepseek(row["response"], row["user_content"], ds_info)
+            else:
+                print("no match, proceeding with groq.")
+                row["processed_answer"] = query_llama3(row["response"], row["user_content"], ds_info)
     
     return row
 
-def evaluate(dpath, dname, savedir, self_con):
+def evaluate(dpath, dname, savedir, self_con, query_model):
     
     dataset = load_from_disk(dpath)
     dataset = dataset.map(lambda example, idx: {"id": idx}, with_indices=True)
@@ -218,11 +262,8 @@ def evaluate(dpath, dname, savedir, self_con):
 
             # process chunk  
             ds_info = datasets_info[dname]     
-            processed_chunk = chunk.map(process_example, fn_kwargs={"ds_info": ds_info, "self_con": self_con})
-            
-            # processed_dataset = dataset.map(process_example, fn_kwargs={"dataset_name": dataset_name})
-            # print(processed_chunk[0])
-            # Save the updated dataset
+            processed_chunk = chunk.map(process_example, fn_kwargs={"ds_info": ds_info, "self_con": self_con, "query_model": query_model})
+       
             dataset_concat(processed_chunk, savedir)
             print(f">Eval>: rows {start_index + local_start} to {start_index + end_index} saved")
             local_start = end_index 
@@ -232,22 +273,6 @@ def evaluate(dpath, dname, savedir, self_con):
     except groq.InternalServerError: 
         #dataset_concat(processed_dataset, savedir)
         print(">Eval>: Exception Occured.")
-    
-
-    # Concatenate progress with new work 
-    
-    
-
-    
-    # if savedir:
-    #     processed_dataset.to_json(f"{savedir}", lines=False)
-    
-    # else:
-    #     if few_shot: 
-    #         processed_dataset.to_json(f"shortened/{model_name}/{dataset_name}_fsp", lines=False)
-    #     else:
-            
-    #         processed_dataset.to_json(f"shortened/{model_name}/{dataset_name}", lines=False)
 
     print(f">Eval>: {dname} answer processing finished and saved at {savedir}.")
 
@@ -265,10 +290,11 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--dataset', nargs='+', type=str, help='Dataset paths')
     parser.add_argument('-s', '--savedir', type=str, default=None, help="directory to be saved")
     parser.add_argument("-sc", "--k_self_con", type=int, default=0, help="number of times in self-consistency")
+    parser.add_argument("--query_model", type=str, default="Deepseek")
 
     args = parser.parse_args()
 
-    model_name = None
+    query_model = args.query_model
     prompt = None
     self_con = False
     
@@ -299,26 +325,6 @@ if __name__ == '__main__':
 
         savedir = None if configs['response']['shortened_save_path'] is None else configs['response']['shortened_save_path']
 
-        """
-        # Create a Jinja2 template from the content
-        template_content = yaml.dump({
-            'dataset': configs['dataset'],
-            'model': configs['model'],
-            'generation': configs['generation'],
-            'response': configs['response'],
-            'eval': configs['eval']
-        })
-        template = Template(template_content)
-
-        # Render the template with variables
-        rendered_content = template.render(model = model_name, prompt = prompt)
-
-        # Load the rendered YAML
-        rendered_config = yaml.safe_load(rendered_content)
-        
-        d_paths = rendered_config['response']['chosen_datasets']
-        """
-
     else: 
         dpaths = args.dataset
         savedir = args.savedir 
@@ -330,4 +336,4 @@ if __name__ == '__main__':
         path = dname_to_dpath[dname]
         print(f">Eval>: Processing answers by {path[path.find('/')+1:path.find('/',path.find('/')+1)]} for {dname}")
 
-        evaluate(path, dname, savedir, self_con)
+        evaluate(path, dname, savedir, self_con, query_model)
